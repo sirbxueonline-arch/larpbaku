@@ -31,17 +31,15 @@ export default async function Home() {
         </div>
 
         {/* Title */}
-        <h1 className="text-7xl font-black leading-none tracking-tighter sm:text-8xl">
-          <span className="text-zinc-900">Baku </span>
+        <h1 className="text-5xl font-black leading-tight tracking-tighter sm:text-6xl">
+          <span className="text-zinc-900">Baku&apos;s </span>
           <span className="text-az-blue">Larp</span>
+          <span className="text-zinc-900"> Leaderboard</span>
         </h1>
 
         {/* Tagline */}
-        <p className="mt-5 text-base font-semibold text-zinc-600">
-          Baku&apos;s biggest larps, ranked by the people.
-        </p>
-        <p className="mt-1 text-sm text-zinc-400">
-          Add your larp. Get exposed.
+        <p className="mt-4 text-base text-zinc-500">
+          Who&apos;s the biggest larp in Baku? You decide.
         </p>
       </header>
 

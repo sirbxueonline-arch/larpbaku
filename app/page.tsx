@@ -23,12 +23,17 @@ export default async function Home() {
     <main className="mx-auto max-w-2xl px-4 py-10 sm:py-16">
       {/* Header */}
       <header className="mb-12 text-center">
+        {/* Flag stripe */}
+        <div className="mx-auto mb-5 flex h-1.5 w-28 overflow-hidden rounded-full">
+          <div className="flex-1 bg-az-blue" />
+          <div className="flex-1 bg-az-red" />
+          <div className="flex-1 bg-az-green" />
+        </div>
+
         {/* Title */}
-        <h1 className="text-7xl font-black leading-none tracking-tighter text-zinc-900 sm:text-8xl">
-          Baku{' '}
-          <span className="inline-block rounded-2xl bg-az-blue px-4 pb-1 pt-0.5 text-white">
-            Larp
-          </span>
+        <h1 className="text-7xl font-black leading-none tracking-tighter sm:text-8xl">
+          <span className="text-zinc-900">Baku </span>
+          <span className="text-az-blue">Larp</span>
         </h1>
 
         {/* Tagline */}

@@ -6,19 +6,57 @@ import { supabase } from '@/lib/supabase/client'
 import type { Larp } from '@/lib/types'
 import LarpRow from './LarpRow'
 
+const VOTE_KEY = 'baku-larp:vote'
+type Vote = 'up' | 'down'
+type StoredVote = { larpId: string; type: Vote }
+
+function readVote(): StoredVote | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(VOTE_KEY)
+    return raw ? (JSON.parse(raw) as StoredVote) : null
+  } catch {
+    return null
+  }
+}
+function writeVote(v: StoredVote | null) {
+  try {
+    if (v) window.localStorage.setItem(VOTE_KEY, JSON.stringify(v))
+    else window.localStorage.removeItem(VOTE_KEY)
+  } catch {}
+}
+
 function sortLarps(larps: Larp[]): Larp[] {
   return [...larps].sort((a, b) => {
-    const sa = a.upvotes - a.downvotes
-    const sb = b.upvotes - b.downvotes
-    if (sb !== sa) return sb - sa
+    const ta = a.upvotes + a.downvotes
+    const tb = b.upvotes + b.downvotes
+    if (tb !== ta) return tb - ta
     return a.created_at.localeCompare(b.created_at)
   })
 }
 
 export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) {
   const [larps, setLarps] = useState<Larp[]>(() => sortLarps(initialLarps))
+  const [vote, setVote] = useState<StoredVote | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => { setVote(readVote()) }, [])
 
   const totalVotes = larps.reduce((s, l) => s + l.upvotes + l.downvotes, 0)
+
+  async function handleVote(larpId: string, type: Vote) {
+    if (vote || busy) return
+    setBusy(true)
+    const newVote: StoredVote = { larpId, type }
+    setVote(newVote)
+    writeVote(newVote)
+    const { error } = await supabase.rpc('increment_vote', { larp_id: larpId, vote_type: type })
+    if (error) {
+      setVote(null)
+      writeVote(null)
+    }
+    setBusy(false)
+  }
 
   useEffect(() => {
     const channel = supabase
@@ -76,7 +114,13 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.25, ease: 'easeOut' }}
               >
-                <LarpRow larp={larp} rank={i + 1} />
+                <LarpRow
+                  larp={larp}
+                  rank={i + 1}
+                  myVote={vote?.larpId === larp.id ? vote.type : null}
+                  disabled={!!vote || busy}
+                  onVote={(type) => handleVote(larp.id, type)}
+                />
               </motion.div>
             ))}
           </AnimatePresence>

@@ -1,22 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronUp, ChevronDown, Crown, Medal } from 'lucide-react'
-import { supabase } from '@/lib/supabase/client'
 import type { Larp } from '@/lib/types'
 
-const VOTES_KEY = 'baku-larp:votes'
 type Vote = 'up' | 'down'
-type VoteMap = Record<string, Vote>
-
-function readVotes(): VoteMap {
-  if (typeof window === 'undefined') return {}
-  try { return JSON.parse(window.localStorage.getItem(VOTES_KEY) || '{}') } catch { return {} }
-}
-function writeVotes(v: VoteMap) {
-  try { window.localStorage.setItem(VOTES_KEY, JSON.stringify(v)) } catch {}
-}
 
 const TOP3 = [
   {
@@ -39,30 +27,20 @@ const TOP3 = [
   },
 ]
 
-export default function LarpRow({ larp, rank }: { larp: Larp; rank: number }) {
-  const [myVote, setMyVote] = useState<Vote | null>(null)
-  const [busy, setBusy] = useState(false)
-
-  useEffect(() => { setMyVote(readVotes()[larp.id] ?? null) }, [larp.id])
-
-  async function vote(type: Vote) {
-    if (myVote || busy) return
-    setBusy(true)
-    const votes = readVotes()
-    votes[larp.id] = type
-    writeVotes(votes)
-    setMyVote(type)
-    const { error } = await supabase.rpc('increment_vote', { larp_id: larp.id, vote_type: type })
-    if (error) {
-      const rolled = readVotes()
-      delete rolled[larp.id]
-      writeVotes(rolled)
-      setMyVote(null)
-    }
-    setBusy(false)
-  }
-
-  const score = larp.upvotes - larp.downvotes
+export default function LarpRow({
+  larp,
+  rank,
+  myVote,
+  disabled,
+  onVote,
+}: {
+  larp: Larp
+  rank: number
+  myVote: Vote | null
+  disabled: boolean
+  onVote: (type: Vote) => void
+}) {
+  const total = larp.upvotes + larp.downvotes
   const isTop3 = rank <= 3
   const top = isTop3 ? TOP3[rank - 1] : null
 
@@ -94,8 +72,8 @@ export default function LarpRow({ larp, rank }: { larp: Larp; rank: number }) {
         {/* Upvote */}
         <button
           type="button"
-          onClick={() => vote('up')}
-          disabled={!!myVote || busy}
+          onClick={() => onVote('up')}
+          disabled={disabled}
           className={`group flex flex-col items-center gap-0.5 rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-all ${
             myVote === 'up'
               ? 'border-az-green bg-az-green/10 text-az-green'
@@ -117,27 +95,27 @@ export default function LarpRow({ larp, rank }: { larp: Larp; rank: number }) {
           </AnimatePresence>
         </button>
 
-        {/* Net score */}
+        {/* Total votes */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={score}
+            key={total}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.2 }}
             className={`w-10 text-center text-base font-black tabular-nums ${
-              score > 0 ? 'text-az-green' : score < 0 ? 'text-az-red' : 'text-zinc-400'
+              total > 0 ? 'text-zinc-900' : 'text-zinc-400'
             }`}
           >
-            {score > 0 ? '+' : ''}{score}
+            {total}
           </motion.div>
         </AnimatePresence>
 
         {/* Downvote */}
         <button
           type="button"
-          onClick={() => vote('down')}
-          disabled={!!myVote || busy}
+          onClick={() => onVote('down')}
+          disabled={disabled}
           className={`group flex flex-col items-center gap-0.5 rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-all ${
             myVote === 'down'
               ? 'border-az-red bg-az-red/10 text-az-red'

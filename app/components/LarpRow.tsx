@@ -8,22 +8,34 @@ type Vote = 'up' | 'down'
 
 const TOP3 = [
   {
-    badge: 'bg-gradient-to-br from-yellow-300 to-amber-400 text-white shadow-[0_4px_16px_-4px_rgba(251,191,36,0.7)]',
-    card: 'border-yellow-300/60 shadow-[0_2px_20px_-6px_rgba(251,191,36,0.3)]',
+    // 1st — gold
+    badge:
+      'bg-gradient-to-br from-yellow-300 via-amber-400 to-amber-500 text-white shadow-[0_6px_20px_-4px_rgba(251,191,36,0.7)] ring-2 ring-yellow-200/60',
+    card:
+      'border-yellow-300/80 bg-gradient-to-br from-yellow-50/90 via-white to-amber-50/50 shadow-[0_8px_32px_-8px_rgba(251,191,36,0.45)]',
     icon: Crown,
-    iconColor: 'text-yellow-700',
+    label: 'CHAMPION',
+    labelCls: 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white',
   },
   {
-    badge: 'bg-gradient-to-br from-zinc-300 to-zinc-400 text-white shadow-[0_4px_16px_-4px_rgba(161,161,170,0.6)]',
-    card: 'border-zinc-300/70 shadow-[0_2px_16px_-6px_rgba(161,161,170,0.25)]',
+    // 2nd — silver
+    badge:
+      'bg-gradient-to-br from-zinc-200 via-zinc-300 to-zinc-400 text-white shadow-[0_6px_20px_-4px_rgba(161,161,170,0.6)] ring-2 ring-zinc-200/60',
+    card:
+      'border-zinc-300/80 bg-gradient-to-br from-zinc-50/90 via-white to-zinc-100/50 shadow-[0_8px_28px_-8px_rgba(161,161,170,0.4)]',
     icon: Medal,
-    iconColor: 'text-zinc-600',
+    label: 'SILVER',
+    labelCls: 'bg-gradient-to-r from-zinc-400 to-zinc-500 text-white',
   },
   {
-    badge: 'bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-[0_4px_16px_-4px_rgba(217,119,6,0.55)]',
-    card: 'border-amber-400/50 shadow-[0_2px_16px_-6px_rgba(217,119,6,0.2)]',
+    // 3rd — bronze
+    badge:
+      'bg-gradient-to-br from-amber-500 via-orange-500 to-orange-600 text-white shadow-[0_6px_20px_-4px_rgba(217,119,6,0.55)] ring-2 ring-orange-200/60',
+    card:
+      'border-amber-400/70 bg-gradient-to-br from-orange-50/90 via-white to-amber-50/50 shadow-[0_8px_28px_-8px_rgba(217,119,6,0.35)]',
     icon: Medal,
-    iconColor: 'text-amber-800',
+    label: 'BRONZE',
+    labelCls: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white',
   },
 ]
 
@@ -54,16 +66,45 @@ export default function LarpRow({
   const RankIcon = top?.icon ?? null
 
   return (
-    <li className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 transition-all duration-200 hover:scale-[1.005] ${cardCls}`}>
+    <li
+      className={`flex items-center gap-3 rounded-2xl px-4 transition-all duration-200 ${
+        isTop3 ? 'py-5 hover:scale-[1.01]' : 'py-3.5 hover:scale-[1.005]'
+      } ${cardCls}`}
+    >
       {/* Rank badge */}
-      <div className={`flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl text-xs font-black ${badgeCls}`}>
-        {RankIcon ? <RankIcon size={15} strokeWidth={2.5} /> : null}
-        <span className={RankIcon ? 'text-[10px] leading-none mt-0.5' : 'text-sm'}>#{rank}</span>
+      <div
+        className={`flex shrink-0 flex-col items-center justify-center rounded-xl font-black ${
+          isTop3 ? 'h-14 w-14' : 'h-10 w-10 text-xs'
+        } ${badgeCls}`}
+      >
+        {RankIcon ? <RankIcon size={isTop3 ? 22 : 15} strokeWidth={2.5} /> : null}
+        <span
+          className={
+            RankIcon
+              ? `leading-none ${isTop3 ? 'mt-1 text-[11px]' : 'mt-0.5 text-[10px]'}`
+              : 'text-sm'
+          }
+        >
+          #{rank}
+        </span>
       </div>
 
       {/* Name + claim */}
       <div className="min-w-0 flex-1">
-        <div className="truncate font-bold text-zinc-900 leading-tight">{larp.name}</div>
+        {top && (
+          <span
+            className={`mb-1 inline-block rounded-full px-2 py-0.5 text-[9px] font-black tracking-wider ${top.labelCls}`}
+          >
+            {top.label}
+          </span>
+        )}
+        <div
+          className={`truncate font-bold text-zinc-900 leading-tight ${
+            isTop3 ? 'text-lg font-black' : ''
+          }`}
+        >
+          {larp.name}
+        </div>
         <div className="truncate text-sm text-zinc-500 mt-0.5">{larp.claim}</div>
       </div>
 

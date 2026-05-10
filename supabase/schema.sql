@@ -1,4 +1,5 @@
 -- Run this in the Supabase SQL editor (one-time setup).
+-- Re-running is safe (all statements are idempotent).
 
 create table if not exists larps (
   id uuid primary key default gen_random_uuid(),
@@ -17,31 +18,62 @@ alter table larps enable row level security;
 drop policy if exists "Public read" on larps;
 create policy "Public read" on larps for select using (true);
 
--- Anyone can insert, but only with zero votes (votes go through the RPC).
+-- Anyone can insert, but only with zero votes (votes go through the API route).
 drop policy if exists "Public insert" on larps;
 create policy "Public insert" on larps for insert
   with check (upvotes = 0 and downvotes = 0);
 
--- Atomic vote increment. SECURITY DEFINER bypasses RLS so anon clients
--- can bump vote counts without a wide-open UPDATE policy.
-create or replace function increment_vote(larp_id uuid, vote_type text)
-returns void
+-- Vote-tracking table. One row per voter (keyed by hashed IP).
+-- Inserts come from the server-side API route using the service role key,
+-- so no public RLS policies are needed.
+create table if not exists votes (
+  ip_hash text primary key,
+  larp_id uuid not null references larps(id) on delete cascade,
+  vote_type text not null check (vote_type in ('up', 'down')),
+  voted_at timestamptz not null default now()
+);
+
+alter table votes enable row level security;
+
+-- Atomic vote: insert the dedup row first; if the IP already voted, the
+-- ON CONFLICT skips the insert and we return false without bumping the
+-- counter. Otherwise we increment the corresponding column on `larps`.
+-- Called only from the server (service role) — see app/api/vote/route.ts.
+create or replace function increment_vote_by_ip(
+  p_larp_id uuid,
+  p_vote_type text,
+  p_ip_hash text
+) returns boolean
 language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  v_inserted integer;
 begin
-  if vote_type = 'up' then
-    update larps set upvotes = upvotes + 1 where id = larp_id;
-  elsif vote_type = 'down' then
-    update larps set downvotes = downvotes + 1 where id = larp_id;
-  else
-    raise exception 'invalid vote_type: %', vote_type;
+  insert into votes (ip_hash, larp_id, vote_type)
+  values (p_ip_hash, p_larp_id, p_vote_type)
+  on conflict (ip_hash) do nothing;
+
+  get diagnostics v_inserted = row_count;
+  if v_inserted = 0 then
+    return false;
   end if;
+
+  if p_vote_type = 'up' then
+    update larps set upvotes = upvotes + 1 where id = p_larp_id;
+  elsif p_vote_type = 'down' then
+    update larps set downvotes = downvotes + 1 where id = p_larp_id;
+  else
+    raise exception 'invalid vote_type: %', p_vote_type;
+  end if;
+
+  return true;
 end;
 $$;
 
-grant execute on function increment_vote(uuid, text) to anon, authenticated;
+-- Drop the old client-callable RPC; voting now goes through /api/vote.
+drop function if exists increment_vote(uuid, text);
 
--- Enable realtime for the table.
+-- Enable realtime for the leaderboard.
 alter publication supabase_realtime add table larps;

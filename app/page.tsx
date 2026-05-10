@@ -103,7 +103,7 @@ export default async function Home() {
             </a>
           </div>
           <footer className="mt-6 text-center text-xs text-zinc-400">
-            One vote per device · votes are anonymous ·{' '}
+            One vote per network · votes are anonymous ·{' '}
             <a href="/privacy" className="hover:text-zinc-600 hover:underline">
               Privacy
             </a>

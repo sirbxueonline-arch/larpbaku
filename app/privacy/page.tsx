@@ -56,6 +56,15 @@ export default function PrivacyPage() {
           settings.
         </p>
 
+        <h2>IP-based vote deduplication</h2>
+        <p>
+          To prevent vote manipulation, when you cast a vote we compute a
+          one-way cryptographic hash (SHA-256, salted) of your IP address and
+          store the hash. We do not store your raw IP. The hash is used only
+          to enforce the one-vote-per-network rule and is not linked to your
+          identity, your browser, or any other tracking system.
+        </p>
+
         <h2>Cookies and advertising</h2>
         <p>
           Third-party vendors, including Google, use cookies to serve ads

@@ -39,6 +39,7 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
   const [larps, setLarps] = useState<Larp[]>(() => sortLarps(initialLarps))
   const [vote, setVote] = useState<StoredVote | null>(null)
   const [busy, setBusy] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   useEffect(() => { setVote(readVote()) }, [])
 
@@ -47,15 +48,35 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
   async function handleVote(larpId: string, type: Vote) {
     if (vote || busy) return
     setBusy(true)
+    setErrorMsg(null)
     const newVote: StoredVote = { larpId, type }
     setVote(newVote)
     writeVote(newVote)
-    const { error } = await supabase.rpc('increment_vote', { larp_id: larpId, vote_type: type })
-    if (error) {
+    try {
+      const res = await fetch('/api/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ larpId, type }),
+      })
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as { error?: string } | null
+        setVote(null)
+        writeVote(null)
+        if (data?.error === 'already_voted') {
+          setErrorMsg('Already voted from this network — one vote per IP.')
+        } else {
+          setErrorMsg('Vote failed. Try again.')
+        }
+        setTimeout(() => setErrorMsg(null), 4000)
+      }
+    } catch {
       setVote(null)
       writeVote(null)
+      setErrorMsg('Network error. Try again.')
+      setTimeout(() => setErrorMsg(null), 4000)
+    } finally {
+      setBusy(false)
     }
-    setBusy(false)
   }
 
   useEffect(() => {
@@ -83,6 +104,13 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
 
   return (
     <div>
+      {/* Error toast */}
+      {errorMsg && (
+        <div className="mb-4 rounded-xl border border-az-red/30 bg-az-red/5 px-4 py-3 text-sm font-semibold text-az-red">
+          {errorMsg}
+        </div>
+      )}
+
       {/* Stats */}
       <div className="mb-6 grid grid-cols-2 gap-3">
         <div className="rounded-xl border border-zinc-200 bg-white px-5 py-4 shadow-sm">

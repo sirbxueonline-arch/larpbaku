@@ -4,6 +4,6 @@ export type Larp = {
   claim: string
   upvotes: number
   downvotes: number
-  score: number
+  score?: number        // generated column — may not exist in all environments
   created_at: string
 }

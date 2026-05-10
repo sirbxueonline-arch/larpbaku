@@ -11,11 +11,18 @@ export default async function Home() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
 
-  const { data } = await supabase
+  // Order by upvotes then created_at — avoids depending on the generated
+  // `score` column which may not exist if the schema was partially applied.
+  // The client-side Leaderboard component re-sorts by net score on hydration.
+  const { data, error } = await supabase
     .from('larps')
-    .select('*')
-    .order('score', { ascending: false })
+    .select('id, name, claim, upvotes, downvotes, created_at')
+    .order('upvotes', { ascending: false })
     .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('[Leaderboard] Supabase fetch error:', JSON.stringify(error))
+  }
 
   const larps: Larp[] = (data as Larp[] | null) ?? []
 
@@ -47,6 +54,13 @@ export default async function Home() {
       <section className="mb-10">
         <AddLarpForm />
       </section>
+
+      {/* Debug: show fetch error in red if something went wrong */}
+      {error && (
+        <p className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 font-mono">
+          DB error: {error.message} (code: {error.code})
+        </p>
+      )}
 
       {/* Leaderboard */}
       <Leaderboard initialLarps={larps} />

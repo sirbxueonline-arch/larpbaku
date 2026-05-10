@@ -23,27 +23,17 @@ export default async function Home() {
     <main className="mx-auto max-w-2xl px-4 py-10 sm:py-16">
       {/* Header */}
       <header className="mb-12 text-center">
-        {/* Flag stripe */}
-        <div className="mx-auto mb-6 flex h-1 w-24 overflow-hidden rounded-full">
-          <div className="flex-1 bg-az-blue" />
-          <div className="flex-1 bg-az-red" />
-          <div className="flex-1 bg-az-green" />
-        </div>
-
         {/* Title */}
         <h1 className="text-7xl font-black leading-none tracking-tighter text-zinc-900 sm:text-8xl">
           Baku{' '}
-          <span
-            className="italic"
-            style={{ color: '#00B5E2' }}
-          >
+          <span className="inline-block rounded-2xl bg-az-blue px-4 pb-1 pt-0.5 text-white">
             Larp
           </span>
         </h1>
 
         {/* Tagline */}
-        <p className="mt-4 text-base font-medium text-zinc-500">
-          Baku&apos;s biggest larps — ranked by the people 🏆
+        <p className="mt-5 text-base font-semibold text-zinc-600">
+          Baku&apos;s biggest larps, ranked by the people.
         </p>
         <p className="mt-1 text-sm text-zinc-400">
           Add your larp. Get exposed.

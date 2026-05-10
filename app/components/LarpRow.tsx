@@ -10,32 +10,29 @@ const TOP3 = [
   {
     // 1st — gold
     badge:
-      'bg-gradient-to-br from-yellow-300 via-amber-400 to-amber-500 text-white shadow-[0_6px_20px_-4px_rgba(251,191,36,0.7)] ring-2 ring-yellow-200/60',
+      'bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500 text-white shadow-[0_6px_18px_-4px_rgba(245,158,11,0.55)]',
     card:
-      'border-yellow-300/80 bg-gradient-to-br from-yellow-50/90 via-white to-amber-50/50 shadow-[0_8px_32px_-8px_rgba(251,191,36,0.45)]',
+      'border-2 border-amber-300 bg-white shadow-[0_6px_24px_-8px_rgba(245,158,11,0.3)]',
+    accent: 'bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-500',
     icon: Crown,
-    label: 'CHAMPION',
-    labelCls: 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white',
   },
   {
     // 2nd — silver
     badge:
-      'bg-gradient-to-br from-zinc-200 via-zinc-300 to-zinc-400 text-white shadow-[0_6px_20px_-4px_rgba(161,161,170,0.6)] ring-2 ring-zinc-200/60',
+      'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-[0_6px_18px_-4px_rgba(100,116,139,0.45)]',
     card:
-      'border-zinc-300/80 bg-gradient-to-br from-zinc-50/90 via-white to-zinc-100/50 shadow-[0_8px_28px_-8px_rgba(161,161,170,0.4)]',
+      'border-2 border-slate-300 bg-white shadow-[0_6px_22px_-8px_rgba(100,116,139,0.22)]',
+    accent: 'bg-gradient-to-b from-slate-300 via-slate-400 to-slate-500',
     icon: Medal,
-    label: 'SILVER',
-    labelCls: 'bg-gradient-to-r from-zinc-400 to-zinc-500 text-white',
   },
   {
     // 3rd — bronze
     badge:
-      'bg-gradient-to-br from-amber-500 via-orange-500 to-orange-600 text-white shadow-[0_6px_20px_-4px_rgba(217,119,6,0.55)] ring-2 ring-orange-200/60',
+      'bg-gradient-to-br from-orange-400 via-orange-500 to-amber-700 text-white shadow-[0_6px_18px_-4px_rgba(234,88,12,0.45)]',
     card:
-      'border-amber-400/70 bg-gradient-to-br from-orange-50/90 via-white to-amber-50/50 shadow-[0_8px_28px_-8px_rgba(217,119,6,0.35)]',
+      'border-2 border-orange-300 bg-white shadow-[0_6px_22px_-8px_rgba(234,88,12,0.22)]',
+    accent: 'bg-gradient-to-b from-orange-400 via-orange-500 to-amber-700',
     icon: Medal,
-    label: 'BRONZE',
-    labelCls: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white',
   },
 ]
 
@@ -67,21 +64,30 @@ export default function LarpRow({
 
   return (
     <li
-      className={`flex items-center gap-3 rounded-2xl px-4 transition-all duration-200 ${
-        isTop3 ? 'py-5 hover:scale-[1.01]' : 'py-3.5 hover:scale-[1.005]'
+      className={`relative flex items-center gap-3 overflow-hidden rounded-2xl pr-4 transition-all duration-200 ${
+        isTop3 ? 'py-4 pl-5 hover:scale-[1.01]' : 'py-3.5 pl-4 hover:scale-[1.005]'
       } ${cardCls}`}
     >
+      {/* Left accent stripe (top 3 only) */}
+      {top && <div className={`absolute inset-y-0 left-0 w-1.5 ${top.accent}`} />}
+
       {/* Rank badge */}
       <div
         className={`flex shrink-0 flex-col items-center justify-center rounded-xl font-black ${
-          isTop3 ? 'h-14 w-14' : 'h-10 w-10 text-xs'
+          isTop3 ? 'h-12 w-12' : 'h-10 w-10 text-xs'
         } ${badgeCls}`}
       >
-        {RankIcon ? <RankIcon size={isTop3 ? 22 : 15} strokeWidth={2.5} /> : null}
+        {RankIcon ? (
+          <RankIcon
+            size={isTop3 ? 20 : 15}
+            strokeWidth={2.5}
+            className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)]"
+          />
+        ) : null}
         <span
           className={
             RankIcon
-              ? `leading-none ${isTop3 ? 'mt-1 text-[11px]' : 'mt-0.5 text-[10px]'}`
+              ? `leading-none mt-0.5 ${isTop3 ? 'text-[10px]' : 'text-[10px]'}`
               : 'text-sm'
           }
         >
@@ -91,16 +97,9 @@ export default function LarpRow({
 
       {/* Name + claim */}
       <div className="min-w-0 flex-1">
-        {top && (
-          <span
-            className={`mb-1 inline-block rounded-full px-2 py-0.5 text-[9px] font-black tracking-wider ${top.labelCls}`}
-          >
-            {top.label}
-          </span>
-        )}
         <div
-          className={`truncate font-bold text-zinc-900 leading-tight ${
-            isTop3 ? 'text-lg font-black' : ''
+          className={`truncate font-black text-zinc-900 leading-tight ${
+            isTop3 ? 'text-base' : 'font-bold'
           }`}
         >
           {larp.name}

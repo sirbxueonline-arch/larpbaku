@@ -29,7 +29,7 @@ export default async function Home() {
           <div className="flex-1 bg-az-green" />
         </div>
         <h1 className="text-6xl font-black tracking-tight text-zinc-900 sm:text-7xl">
-          Baku<span className="text-az-blue">Larp</span>
+          Baku <span className="text-az-blue">Larp</span>
         </h1>
         <p className="mt-3 text-base text-zinc-500">
           Submit your larp. Let Baku decide.

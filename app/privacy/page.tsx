@@ -7,7 +7,6 @@ export const metadata: Metadata = {
 }
 
 const EFFECTIVE_DATE = 'May 10, 2026'
-const CONTACT_EMAIL = 'guluzadakaan@gmail.com'
 
 export default function PrivacyPage() {
   return (
@@ -125,8 +124,7 @@ export default function PrivacyPage() {
         <h2>Data retention</h2>
         <p>
           Larp entries and vote counts are retained as part of the public
-          leaderboard. If you would like an entry removed, contact us at the
-          email below.
+          leaderboard.
         </p>
 
         <h2>Children&apos;s privacy</h2>
@@ -139,12 +137,6 @@ export default function PrivacyPage() {
         <p>
           We may update this policy from time to time. Material changes will
           be reflected by updating the effective date above.
-        </p>
-
-        <h2>Contact</h2>
-        <p>
-          Questions or removal requests:{' '}
-          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
         </p>
       </article>
     </main>

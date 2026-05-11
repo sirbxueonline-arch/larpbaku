@@ -102,6 +102,25 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
     return () => { supabase.removeChannel(channel) }
   }, [])
 
+  // Refetch from scratch when the tab becomes visible again — covers the
+  // case where the realtime websocket drops while the tab is asleep and
+  // we miss updates. Belt-and-suspenders alongside the realtime channel.
+  useEffect(() => {
+    async function refetch() {
+      const { data } = await supabase
+        .from('larps')
+        .select('id, name, claim, upvotes, downvotes, created_at')
+        .order('score', { ascending: false })
+        .order('created_at', { ascending: true })
+      if (data) setLarps(sortLarps(data as Larp[]))
+    }
+    function onVisible() {
+      if (document.visibilityState === 'visible') refetch()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [])
+
   return (
     <div>
       {/* Error toast */}

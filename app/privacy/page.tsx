@@ -24,7 +24,7 @@ export default function PrivacyPage() {
         <p className="mt-2 text-sm text-zinc-500">Effective {EFFECTIVE_DATE}</p>
       </header>
 
-      <article className="prose prose-zinc max-w-none space-y-6 text-zinc-700 [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-zinc-900 [&_p]:leading-relaxed [&_a]:text-az-blue [&_a]:underline">
+      <article className="space-y-6 text-zinc-700 [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-zinc-900 [&_p]:leading-relaxed [&_a]:text-az-blue [&_a]:underline">
         <p>
           This Privacy Policy explains how Baku Larp (&ldquo;the site&rdquo;,
           &ldquo;we&rdquo;) handles information when you use our leaderboard at

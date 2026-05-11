@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import Link from 'next/link'
 import AddLarpForm from './components/AddLarpForm'
 import AdSlot from './components/AdSlot'
 import Leaderboard from './components/Leaderboard'
@@ -23,13 +24,14 @@ export default async function Home() {
     },
   )
 
-  // Order by upvotes then created_at — avoids depending on the generated
-  // `score` column which may not exist if the schema was partially applied.
-  // The client-side Leaderboard component re-sorts by net score on hydration.
+  // Order by the `score` generated column (upvotes - downvotes) so the
+  // server-rendered list matches the client-side sort and there's no
+  // visible re-shuffling on hydration. created_at is the deterministic
+  // tiebreaker.
   const { data, error } = await supabase
     .from('larps')
     .select('id, name, claim, upvotes, downvotes, created_at')
-    .order('upvotes', { ascending: false })
+    .order('score', { ascending: false })
     .order('created_at', { ascending: true })
 
   if (error) {
@@ -107,9 +109,9 @@ export default async function Home() {
           </div>
           <footer className="mt-6 text-center text-xs text-zinc-400">
             One vote per network · votes are anonymous ·{' '}
-            <a href="/privacy" className="hover:text-zinc-600 hover:underline">
+            <Link href="/privacy" className="hover:text-zinc-600 hover:underline">
               Privacy
-            </a>
+            </Link>
           </footer>
         </main>
 

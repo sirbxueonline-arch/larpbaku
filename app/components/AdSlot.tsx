@@ -21,12 +21,15 @@ export default function AdSlot({
   const pushed = useRef(false)
 
   useEffect(() => {
-    if (pushed.current) return
+    // Only push when an <ins> will actually render. Without this guard,
+    // an empty-slot AdSlot would still call adsbygoogle.push(), which
+    // triggers a "No slot size for availableWidth=0" error in the console.
+    if (!slot || pushed.current) return
     try {
       ;(window.adsbygoogle = window.adsbygoogle || []).push({})
       pushed.current = true
     } catch {}
-  }, [])
+  }, [slot])
 
   if (!slot) return null
 

@@ -109,7 +109,7 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
     async function refetch() {
       const { data } = await supabase
         .from('larps')
-        .select('id, name, claim, upvotes, downvotes, created_at')
+        .select('id, name, claim, upvotes, downvotes, created_at, user_id')
         .order('score', { ascending: false })
         .order('created_at', { ascending: true })
       if (data) setLarps(sortLarps(data as Larp[]))

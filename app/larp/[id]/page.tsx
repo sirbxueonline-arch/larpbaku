@@ -20,16 +20,31 @@ async function fetchLarp(id: string): Promise<{ larp: Larp; rank: number } | nul
     },
   )
 
-  const { data: larps } = await supabase
+  // Fetch the larp directly by id — fast, doesn't depend on full table fetch
+  const { data: row, error: rowErr } = await supabase
     .from('larps')
-    .select('id, name, claim, upvotes, downvotes, created_at')
-    .order('score', { ascending: false })
-    .order('created_at', { ascending: true })
+    .select('id, name, claim, upvotes, downvotes, created_at, user_id, score')
+    .eq('id', id)
+    .maybeSingle()
 
-  if (!larps) return null
-  const rank = (larps as Larp[]).findIndex((l) => l.id === id)
-  if (rank === -1) return null
-  return { larp: (larps as Larp[])[rank], rank: rank + 1 }
+  if (rowErr || !row) return null
+  const larp = row as Larp & { score?: number }
+  const score = (larp.score ?? larp.upvotes - larp.downvotes) || 0
+
+  // Rank = number of larps with a strictly higher score, plus 1. Ties
+  // resolved by created_at (earlier wins) per the leaderboard's sort.
+  const { count: higherScore } = await supabase
+    .from('larps')
+    .select('id', { count: 'exact', head: true })
+    .gt('score', score)
+  const { count: tiedEarlier } = await supabase
+    .from('larps')
+    .select('id', { count: 'exact', head: true })
+    .eq('score', score)
+    .lt('created_at', larp.created_at)
+  const rank = (higherScore ?? 0) + (tiedEarlier ?? 0) + 1
+
+  return { larp, rank }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

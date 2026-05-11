@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Crown } from 'lucide-react'
 import AddLarpForm from './components/AddLarpForm'
 import AdSlot from './components/AdSlot'
+import AuthButton from './components/AuthButton'
 import Leaderboard from './components/Leaderboard'
 import type { Larp } from '@/lib/types'
 import {
@@ -31,7 +32,7 @@ export default async function Home() {
   // tiebreaker.
   const { data, error } = await supabase
     .from('larps')
-    .select('id, name, claim, upvotes, downvotes, created_at')
+    .select('id, name, claim, upvotes, downvotes, created_at, user_id')
     .order('score', { ascending: false })
     .order('created_at', { ascending: true })
 
@@ -110,6 +111,11 @@ export default async function Home() {
 
         {/* Main content */}
         <main className="mx-auto w-full max-w-2xl pb-24 lg:pb-0">
+          {/* Auth row */}
+          <div className="mb-8 flex justify-end">
+            <AuthButton />
+          </div>
+
           {/* Header */}
           <header className="mb-12 text-center">
             {/* Flag stripe */}

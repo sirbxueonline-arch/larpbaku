@@ -120,6 +120,34 @@ begin
 end;
 $$;
 
+-- Profiles table: one row per registered user, mapping auth.users.id to a
+-- public username. Inserted by the client after a successful signup.
+create table if not exists profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  username text not null unique check (username ~ '^[a-zA-Z0-9_]{3,20}$'),
+  created_at timestamptz not null default now()
+);
+
+alter table profiles enable row level security;
+
+drop policy if exists "Profiles public read" on profiles;
+create policy "Profiles public read" on profiles for select using (true);
+
+drop policy if exists "Profiles self insert" on profiles;
+create policy "Profiles self insert" on profiles for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Profiles self update" on profiles;
+create policy "Profiles self update" on profiles for update
+  using (auth.uid() = user_id);
+
+-- Larps: nullable user_id so anonymous entries still work alongside owned
+-- entries. ON DELETE SET NULL preserves the entry if a user is deleted.
+alter table larps
+  add column if not exists user_id uuid references auth.users(id) on delete set null;
+
+create index if not exists larps_user_id_idx on larps (user_id);
+
 -- Enable realtime for the leaderboard (idempotent — skips if already added).
 do $$
 begin

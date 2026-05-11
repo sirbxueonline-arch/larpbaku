@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronUp, ChevronDown, Crown, Medal } from 'lucide-react'
+import { ChevronUp, ChevronDown, Crown, Medal, BadgeCheck } from 'lucide-react'
 import Link from 'next/link'
 import type { Larp } from '@/lib/types'
 import ShareButton from './ShareButton'
@@ -104,11 +104,19 @@ export default function LarpRow({
         aria-label={`Open ${larp.name}'s page`}
       >
         <div
-          className={`truncate font-black text-zinc-900 leading-tight group-hover:text-az-blue transition-colors ${
+          className={`flex items-center gap-1 truncate font-black text-zinc-900 leading-tight group-hover:text-az-blue transition-colors ${
             isTop3 ? 'text-base' : 'font-bold'
           }`}
         >
-          {larp.name}
+          <span className="truncate">{larp.name}</span>
+          {larp.user_id && (
+            <BadgeCheck
+              size={14}
+              strokeWidth={2.5}
+              className="shrink-0 text-az-blue"
+              aria-label="Verified account"
+            />
+          )}
         </div>
         <div className="truncate text-sm text-zinc-500 mt-0.5">{larp.claim}</div>
       </Link>

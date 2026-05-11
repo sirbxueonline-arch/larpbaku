@@ -48,7 +48,12 @@ export default function ShareButton({
       type="button"
       onClick={handleShare}
       aria-label="Share this larp"
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-500 transition hover:border-az-blue hover:bg-az-blue/5 hover:text-az-blue active:scale-95"
+      title={copied ? 'Link copied!' : 'Share'}
+      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition active:scale-95 ${
+        copied
+          ? 'border-az-green bg-az-green/10 text-az-green'
+          : 'border-zinc-200 bg-zinc-50 text-zinc-500 hover:border-az-blue hover:bg-az-blue/5 hover:text-az-blue'
+      }`}
     >
       {copied ? (
         <Check size={14} strokeWidth={2.5} />

@@ -37,9 +37,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 })
   }
   const b = body as { name?: unknown; claim?: unknown }
-  const name = typeof b.name === 'string' ? b.name.trim() : ''
   const claim = typeof b.claim === 'string' ? b.claim.trim() : ''
-  if (!name || !claim || name.length > NAME_MAX || claim.length > CLAIM_MAX) {
+  if (!claim || claim.length > CLAIM_MAX) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 })
   }
 
@@ -52,6 +51,35 @@ export async function POST(req: NextRequest) {
   const supabase = createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   })
+
+  // If the client sent an auth token, verify it and force the larp's name
+  // to the user's username — preventing impersonation. Anonymous submits
+  // can pick any name (validated below).
+  let userId: string | null = null
+  let name = ''
+  const authHeader = req.headers.get('authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7)
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token)
+    if (userErr || !userData.user) {
+      return NextResponse.json({ error: 'invalid_token' }, { status: 401 })
+    }
+    userId = userData.user.id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (!profile) {
+      return NextResponse.json({ error: 'no_profile' }, { status: 400 })
+    }
+    name = (profile as { username: string }).username
+  } else {
+    name = typeof b.name === 'string' ? b.name.trim() : ''
+    if (!name || name.length > NAME_MAX) {
+      return NextResponse.json({ error: 'invalid_body' }, { status: 400 })
+    }
+  }
 
   const { data, error } = await supabase.rpc('add_larp_with_rate_limit', {
     p_name: name,
@@ -67,6 +95,12 @@ export async function POST(req: NextRequest) {
       { error: 'db_error', detail: error.message },
       { status: 500 },
     )
+  }
+
+  // Attach the owner if signed in. We do this in a second statement
+  // (not inside the RPC) so the existing function signature is unchanged.
+  if (userId && data) {
+    await supabase.from('larps').update({ user_id: userId }).eq('id', data)
   }
 
   return NextResponse.json({ ok: true, id: data })

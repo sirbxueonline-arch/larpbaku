@@ -11,17 +11,37 @@ export default async function Image({ params }: { params: { id: string } }) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
-  const { data } = await supabase
-    .from('larps')
-    .select('id, name, claim, upvotes, downvotes')
-    .order('score', { ascending: false })
-    .order('created_at', { ascending: true })
+  type Row = {
+    id: string
+    name: string
+    claim: string
+    upvotes: number
+    downvotes: number
+    created_at: string
+    score?: number
+  }
 
-  type Row = { id: string; name: string; claim: string; upvotes: number; downvotes: number }
-  const rows = (data as Row[] | null) ?? []
-  const rank = rows.findIndex((l) => l.id === params.id)
-  const larp = rank >= 0 ? rows[rank] : null
-  const displayRank = rank >= 0 ? rank + 1 : 0
+  const { data: row } = await supabase
+    .from('larps')
+    .select('id, name, claim, upvotes, downvotes, created_at, score')
+    .eq('id', params.id)
+    .maybeSingle()
+
+  const larp = (row as Row | null) ?? null
+  let displayRank = 0
+  if (larp) {
+    const score = larp.score ?? larp.upvotes - larp.downvotes
+    const { count: higher } = await supabase
+      .from('larps')
+      .select('id', { count: 'exact', head: true })
+      .gt('score', score)
+    const { count: tied } = await supabase
+      .from('larps')
+      .select('id', { count: 'exact', head: true })
+      .eq('score', score)
+      .lt('created_at', larp.created_at)
+    displayRank = (higher ?? 0) + (tied ?? 0) + 1
+  }
   const score = larp ? larp.upvotes - larp.downvotes : 0
 
   const top1 = displayRank === 1

@@ -6,4 +6,5 @@ export type Larp = {
   downvotes: number
   score?: number        // generated column — may not exist in all environments
   created_at: string
+  user_id?: string | null
 }

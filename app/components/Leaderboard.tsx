@@ -36,16 +36,27 @@ function sortLarps(larps: Larp[]): Larp[] {
   })
 }
 
+type Range = 'hour' | 'today' | 'all'
+
+function filterByRange(larps: Larp[], range: Range): Larp[] {
+  if (range === 'all') return larps
+  const now = Date.now()
+  const cutoff = range === 'hour' ? now - 60 * 60 * 1000 : now - 24 * 60 * 60 * 1000
+  return larps.filter((l) => new Date(l.created_at).getTime() >= cutoff)
+}
+
 export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) {
   const { session } = useAuth()
   const [larps, setLarps] = useState<Larp[]>(() => sortLarps(initialLarps))
   const [vote, setVote] = useState<StoredVote | null>(null)
   const [busy, setBusy] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [range, setRange] = useState<Range>('all')
 
   useEffect(() => { setVote(readVote()) }, [])
 
-  const totalVotes = larps.reduce((s, l) => s + l.upvotes + l.downvotes, 0)
+  const visibleLarps = filterByRange(larps, range)
+  const totalVotes = visibleLarps.reduce((s, l) => s + l.upvotes + l.downvotes, 0)
 
   async function handleVote(larpId: string, type: Vote) {
     if (vote || busy) return
@@ -161,7 +172,7 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
       {/* Stats */}
       <div className="mb-6 grid grid-cols-2 gap-3">
         <div className="rounded-xl border border-zinc-200 bg-white px-5 py-4 shadow-sm">
-          <div className="text-2xl font-black text-zinc-900">{larps.length}</div>
+          <div className="text-2xl font-black text-zinc-900">{visibleLarps.length}</div>
           <div className="text-xs font-medium text-zinc-500 uppercase tracking-wider mt-0.5">Larps</div>
         </div>
         <div className="rounded-xl border border-zinc-200 bg-white px-5 py-4 shadow-sm">
@@ -170,17 +181,50 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
         </div>
       </div>
 
+      {/* Range filter */}
+      <div className="mb-4 inline-flex rounded-xl border border-zinc-200 bg-white p-1 shadow-sm">
+        {([
+          { key: 'hour', label: 'Hour' },
+          { key: 'today', label: 'Today' },
+          { key: 'all', label: 'All time' },
+        ] as { key: Range; label: string }[]).map((opt) => {
+          const active = range === opt.key
+          return (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => setRange(opt.key)}
+              aria-pressed={active}
+              className={
+                'rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition ' +
+                (active
+                  ? 'bg-zinc-900 text-white shadow-sm'
+                  : 'text-zinc-600 hover:text-zinc-900')
+              }
+            >
+              {opt.label}
+            </button>
+          )
+        })}
+      </div>
+
       {/* List */}
-      {larps.length === 0 ? (
+      {visibleLarps.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-white py-16 text-center">
           <div className="text-4xl mb-3">🏆</div>
-          <p className="font-semibold text-zinc-700">No larps yet</p>
-          <p className="text-sm text-zinc-500 mt-1">Be the first to claim something ridiculous</p>
+          <p className="font-semibold text-zinc-700">
+            {range === 'all' ? 'No larps yet' : 'No larps in this range'}
+          </p>
+          <p className="text-sm text-zinc-500 mt-1">
+            {range === 'all'
+              ? 'Be the first to claim something ridiculous'
+              : 'Try a wider time range'}
+          </p>
         </div>
       ) : (
         <ol className="space-y-2">
           <AnimatePresence initial={false}>
-            {larps.map((larp, i) => (
+            {visibleLarps.map((larp, i) => (
               <motion.div
                 key={larp.id}
                 layout

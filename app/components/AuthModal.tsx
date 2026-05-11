@@ -8,7 +8,10 @@ import { useAuth } from './AuthProvider'
 type Mode = 'login' | 'signup'
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
-const SYNTH_DOMAIN = 'larpbaku.local'
+// Supabase rejects .local / .test / .invalid as domains. Use the real
+// project domain — no real email is ever sent to these addresses
+// (email confirmation must stay off in Supabase auth settings).
+const SYNTH_DOMAIN = 'larpbaku.com'
 
 function synthEmail(username: string) {
   return `${username.trim().toLowerCase()}@${SYNTH_DOMAIN}`

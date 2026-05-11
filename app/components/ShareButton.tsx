@@ -23,7 +23,10 @@ export default function ShareButton({
         ? `${window.location.origin}/larp/${larpId}`
         : `/larp/${larpId}`
     const title = `${name} — #${rank} on Baku Larp`
-    const text = `${name} is #${rank} on Baku's Larp Leaderboard. Vote at`
+    // Include the URL inline in the text. Some share targets (TikTok DM,
+    // Instagram, certain Android share sheets) ignore the separate `url`
+    // field of navigator.share(), so without this the URL is dropped.
+    const text = `${name} is #${rank} on Baku's Larp Leaderboard. Vote at ${url}`
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {

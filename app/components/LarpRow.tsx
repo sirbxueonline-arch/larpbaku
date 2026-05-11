@@ -49,7 +49,7 @@ export default function LarpRow({
   disabled: boolean
   onVote: (type: Vote) => void
 }) {
-  const total = larp.upvotes + larp.downvotes
+  const score = larp.upvotes - larp.downvotes
   const isTop3 = rank <= 3
   const top = isTop3 ? TOP3[rank - 1] : null
 
@@ -135,19 +135,19 @@ export default function LarpRow({
           </AnimatePresence>
         </button>
 
-        {/* Total votes */}
+        {/* Net score */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={total}
+            key={score}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.2 }}
-            className={`w-10 text-center text-base font-black tabular-nums ${
-              total > 0 ? 'text-zinc-900' : 'text-zinc-400'
+            className={`w-12 text-center text-base font-black tabular-nums ${
+              score > 0 ? 'text-az-green' : score < 0 ? 'text-az-red' : 'text-zinc-400'
             }`}
           >
-            {total}
+            {score > 0 ? '+' : ''}{score}
           </motion.div>
         </AnimatePresence>
 

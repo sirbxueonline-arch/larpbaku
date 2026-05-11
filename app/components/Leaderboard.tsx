@@ -28,9 +28,9 @@ function writeVote(v: StoredVote | null) {
 
 function sortLarps(larps: Larp[]): Larp[] {
   return [...larps].sort((a, b) => {
-    const ta = a.upvotes + a.downvotes
-    const tb = b.upvotes + b.downvotes
-    if (tb !== ta) return tb - ta
+    const sa = a.upvotes - a.downvotes
+    const sb = b.upvotes - b.downvotes
+    if (sb !== sa) return sb - sa
     return a.created_at.localeCompare(b.created_at)
   })
 }

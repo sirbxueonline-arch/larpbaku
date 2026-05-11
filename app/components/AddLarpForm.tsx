@@ -37,15 +37,23 @@ export default function AddLarpForm() {
         setName('')
         setClaim('')
       } else {
-        const data = (await res.json().catch(() => null)) as { error?: string } | null
+        const data = (await res.json().catch(() => null)) as
+          | { error?: string; detail?: string }
+          | null
         if (data?.error === 'rate_limited') {
           setError('You just added one — wait a few minutes before adding another.')
         } else if (data?.error === 'invalid_body') {
           setError('Name or claim is too long. Trim it down.')
         } else if (data?.error === 'invalid_token') {
           setError('Your session expired. Log back in.')
+        } else if (data?.error === 'server_misconfigured') {
+          setError('Server missing env vars. Tell admin: SUPABASE_SERVICE_ROLE_KEY not set.')
+        } else if (data?.error === 'no_profile') {
+          setError('Your profile is missing. Log out and sign up again.')
+        } else if (data?.error === 'db_error') {
+          setError(`DB error: ${data.detail ?? 'unknown'}`)
         } else {
-          setError('Could not add. Try again in a moment.')
+          setError(`Could not add. (${data?.error ?? 'unknown'})`)
         }
       }
     } catch {

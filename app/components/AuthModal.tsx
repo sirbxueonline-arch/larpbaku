@@ -93,6 +93,17 @@ export default function AuthModal({
             )
             return
           }
+
+          // Claim any anonymous larps where the name matches the new
+          // username (case-insensitive). This lets a person who was
+          // already roasted on the leaderboard sign up later and
+          // "own" the entry — gets the verified ✓, avatar, bio, and
+          // social links displayed on it.
+          await supabase
+            .from('larps')
+            .update({ user_id: userId })
+            .ilike('name', u)
+            .is('user_id', null)
         }
         await refreshProfile()
         onClose()

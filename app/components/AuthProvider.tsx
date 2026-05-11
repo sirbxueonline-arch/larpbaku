@@ -66,7 +66,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   )
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut()
+    // Force-clear local state first so the UI flips immediately even if
+    // Supabase's signOut call errors or hangs (expired token, network blip).
+    setSession(null)
+    setProfile(null)
+    try {
+      await supabase.auth.signOut()
+    } catch (e) {
+      console.error('[signOut] supabase error:', e)
+    }
   }, [])
 
   return (

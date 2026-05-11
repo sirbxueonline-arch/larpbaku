@@ -1,36 +1,78 @@
 'use client'
 
-import { useState } from 'react'
-import { LogIn, LogOut, User } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { LogIn, LogOut, Pencil, ChevronDown } from 'lucide-react'
 import { useAuth } from './AuthProvider'
 import AuthModal from './AuthModal'
+import ProfileEditor from './ProfileEditor'
+import Avatar from './Avatar'
 
 export default function AuthButton() {
-  const { session, username, loading, signOut } = useAuth()
-  const [modalOpen, setModalOpen] = useState(false)
-  const [modalMode, setModalMode] = useState<'login' | 'signup'>('login')
+  const { session, profile, loading, signOut } = useAuth()
+  const [authOpen, setAuthOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login')
+  const [editorOpen, setEditorOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function onDoc(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [menuOpen])
 
   if (loading) {
-    return (
-      <div className="h-9 w-24 animate-pulse rounded-xl bg-zinc-200" />
-    )
+    return <div className="h-9 w-24 animate-pulse rounded-xl bg-zinc-200" />
   }
 
-  if (session && username) {
+  if (session && profile) {
     return (
-      <div className="flex items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-900 shadow-sm">
-          <User size={14} strokeWidth={2.5} />@{username}
-        </span>
-        <button
-          type="button"
-          onClick={signOut}
-          aria-label="Sign out"
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-500 transition hover:border-az-red hover:text-az-red"
-        >
-          <LogOut size={14} strokeWidth={2.5} />
-        </button>
-      </div>
+      <>
+        <div ref={menuRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white py-1.5 pl-1.5 pr-3 text-sm font-bold text-zinc-900 shadow-sm transition hover:border-az-blue"
+          >
+            <Avatar url={profile.avatar_url} username={profile.username} size="sm" />
+            @{profile.username}
+            <ChevronDown size={13} strokeWidth={2.5} className="text-zinc-400" />
+          </button>
+
+          {menuOpen && (
+            <div className="absolute right-0 mt-1.5 w-44 overflow-hidden rounded-xl border border-zinc-200 bg-white py-1 shadow-lg">
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false)
+                  setEditorOpen(true)
+                }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
+              >
+                <Pencil size={13} strokeWidth={2.5} />
+                Edit profile
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false)
+                  signOut()
+                }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm font-semibold text-az-red hover:bg-az-red/5"
+              >
+                <LogOut size={13} strokeWidth={2.5} />
+                Sign out
+              </button>
+            </div>
+          )}
+        </div>
+        <ProfileEditor open={editorOpen} onClose={() => setEditorOpen(false)} />
+      </>
     )
   }
 
@@ -40,8 +82,8 @@ export default function AuthButton() {
         <button
           type="button"
           onClick={() => {
-            setModalMode('login')
-            setModalOpen(true)
+            setAuthMode('login')
+            setAuthOpen(true)
           }}
           className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-700 transition hover:border-az-blue hover:text-az-blue"
         >
@@ -51,8 +93,8 @@ export default function AuthButton() {
         <button
           type="button"
           onClick={() => {
-            setModalMode('signup')
-            setModalOpen(true)
+            setAuthMode('signup')
+            setAuthOpen(true)
           }}
           className="rounded-xl bg-az-blue px-3 py-2 text-sm font-bold text-white transition hover:brightness-110"
         >
@@ -60,9 +102,9 @@ export default function AuthButton() {
         </button>
       </div>
       <AuthModal
-        open={modalOpen}
-        initialMode={modalMode}
-        onClose={() => setModalOpen(false)}
+        open={authOpen}
+        initialMode={authMode}
+        onClose={() => setAuthOpen(false)}
       />
     </>
   )

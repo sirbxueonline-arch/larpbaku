@@ -121,12 +121,37 @@ end;
 $$;
 
 -- Profiles table: one row per registered user, mapping auth.users.id to a
--- public username. Inserted by the client after a successful signup.
+-- public username, avatar URL, and bio. Inserted by the client after
+-- successful signup; updated through the ProfileEditor modal.
 create table if not exists profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   username text not null unique check (username ~ '^[a-zA-Z0-9_]{3,20}$'),
+  avatar_url text,
+  bio text check (bio is null or char_length(bio) <= 200),
   created_at timestamptz not null default now()
 );
+
+-- Backfill columns when re-running on an older schema
+alter table profiles add column if not exists avatar_url text;
+alter table profiles add column if not exists bio text;
+alter table profiles add column if not exists tiktok text;
+alter table profiles add column if not exists instagram text;
+do $$ begin
+  begin
+    alter table profiles add constraint profiles_bio_len check (bio is null or char_length(bio) <= 200);
+  exception when duplicate_object then null;
+  end;
+  begin
+    alter table profiles add constraint profiles_tiktok_fmt
+      check (tiktok is null or tiktok ~ '^[a-zA-Z0-9._]{1,24}$');
+  exception when duplicate_object then null;
+  end;
+  begin
+    alter table profiles add constraint profiles_instagram_fmt
+      check (instagram is null or instagram ~ '^[a-zA-Z0-9._]{1,30}$');
+  exception when duplicate_object then null;
+  end;
+end $$;
 
 alter table profiles enable row level security;
 
@@ -142,11 +167,73 @@ create policy "Profiles self update" on profiles for update
   using (auth.uid() = user_id);
 
 -- Larps: nullable user_id so anonymous entries still work alongside owned
--- entries. ON DELETE SET NULL preserves the entry if a user is deleted.
+-- entries. Reference profiles directly so PostgREST can do the embed
+-- (Supabase JS .select('*, profiles(...)') needs an FK to the table).
 alter table larps
-  add column if not exists user_id uuid references auth.users(id) on delete set null;
+  add column if not exists user_id uuid;
+
+-- If an old FK to auth.users exists, drop it before adding the new one.
+do $$ begin
+  if exists (
+    select 1 from information_schema.referential_constraints
+    where constraint_name = 'larps_user_id_fkey' and constraint_schema = 'public'
+  ) then
+    alter table larps drop constraint larps_user_id_fkey;
+  end if;
+end $$;
+
+do $$ begin
+  begin
+    alter table larps add constraint larps_user_id_fkey
+      foreign key (user_id) references profiles(user_id) on delete set null;
+  exception when duplicate_object then null;
+  end;
+end $$;
 
 create index if not exists larps_user_id_idx on larps (user_id);
+
+-- Avatars storage bucket. Public so <img> tags work without signed URLs.
+-- 2 MB cap, image types only.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'avatars', 'avatars', true,
+  2097152,
+  array['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif']
+)
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+-- Storage policies: public read, authenticated user can write/replace
+-- files only under a folder matching their own user_id.
+drop policy if exists "Avatar public read" on storage.objects;
+create policy "Avatar public read" on storage.objects for select
+  using (bucket_id = 'avatars');
+
+drop policy if exists "Avatar self insert" on storage.objects;
+create policy "Avatar self insert" on storage.objects for insert
+  to authenticated
+  with check (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "Avatar self update" on storage.objects;
+create policy "Avatar self update" on storage.objects for update
+  to authenticated
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "Avatar self delete" on storage.objects;
+create policy "Avatar self delete" on storage.objects for delete
+  to authenticated
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
 
 -- Enable realtime for the leaderboard (idempotent — skips if already added).
 do $$

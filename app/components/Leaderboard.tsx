@@ -90,7 +90,16 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
             return sortLarps([...current, inserted])
           }
           if (payload.eventType === 'UPDATE') {
-            return sortLarps(current.map((l) => (l.id === (payload.new as Larp).id ? (payload.new as Larp) : l)))
+            const updated = payload.new as Larp
+            return sortLarps(
+              current.map((l) =>
+                l.id === updated.id
+                  // Realtime payloads don't include the joined profiles
+                  // data — keep whatever we already had for this row.
+                  ? { ...updated, profiles: l.profiles ?? null }
+                  : l,
+              ),
+            )
           }
           if (payload.eventType === 'DELETE') {
             return current.filter((l) => l.id !== (payload.old as { id: string }).id)
@@ -109,7 +118,7 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
     async function refetch() {
       const { data } = await supabase
         .from('larps')
-        .select('id, name, claim, upvotes, downvotes, created_at, user_id')
+        .select('id, name, claim, upvotes, downvotes, created_at, user_id, profiles(username, avatar_url, bio)')
         .order('score', { ascending: false })
         .order('created_at', { ascending: true })
       if (data) setLarps(sortLarps(data as Larp[]))

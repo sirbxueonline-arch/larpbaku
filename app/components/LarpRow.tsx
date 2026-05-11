@@ -5,6 +5,7 @@ import { ChevronUp, ChevronDown, Crown, Medal, BadgeCheck } from 'lucide-react'
 import Link from 'next/link'
 import type { Larp } from '@/lib/types'
 import ShareButton from './ShareButton'
+import Avatar from './Avatar'
 
 type Vote = 'up' | 'down'
 
@@ -96,6 +97,15 @@ export default function LarpRow({
           #{rank}
         </span>
       </div>
+
+      {/* Avatar (only when entry is owned by a user) */}
+      {larp.user_id && (
+        <Avatar
+          url={larp.profiles?.avatar_url}
+          username={larp.profiles?.username ?? larp.name}
+          size="md"
+        />
+      )}
 
       {/* Name + claim (link to detail page) */}
       <Link

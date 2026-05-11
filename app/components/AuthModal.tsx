@@ -26,7 +26,7 @@ export default function AuthModal({
   initialMode?: Mode
   onClose: () => void
 }) {
-  const { refreshUsername } = useAuth()
+  const { refreshProfile } = useAuth()
   const [mode, setMode] = useState<Mode>(initialMode)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -94,7 +94,7 @@ export default function AuthModal({
             return
           }
         }
-        await refreshUsername()
+        await refreshProfile()
         onClose()
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -109,7 +109,7 @@ export default function AuthModal({
           )
           return
         }
-        await refreshUsername()
+        await refreshProfile()
         onClose()
       }
     } catch (err) {

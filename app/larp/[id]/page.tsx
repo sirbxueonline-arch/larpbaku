@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Crown, Medal, ArrowLeft } from 'lucide-react'
+import { Crown, Medal, ArrowLeft, BadgeCheck } from 'lucide-react'
 import type { Metadata } from 'next'
 import type { Larp } from '@/lib/types'
+import Avatar from '@/app/components/Avatar'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +24,7 @@ async function fetchLarp(id: string): Promise<{ larp: Larp; rank: number } | nul
   // Fetch the larp directly by id — fast, doesn't depend on full table fetch
   const { data: row, error: rowErr } = await supabase
     .from('larps')
-    .select('id, name, claim, upvotes, downvotes, created_at, user_id, score')
+    .select('id, name, claim, upvotes, downvotes, created_at, user_id, score, profiles(username, avatar_url, bio)')
     .eq('id', id)
     .maybeSingle()
 
@@ -108,6 +109,28 @@ export default async function LarpDetailPage({ params }: Props) {
             </span>
           )}
         </div>
+
+        {/* Owner profile block (verified entries only) */}
+        {larp.user_id && (
+          <div className="mb-5 flex items-center gap-3">
+            <Avatar
+              url={larp.profiles?.avatar_url}
+              username={larp.profiles?.username ?? larp.name}
+              size="lg"
+            />
+            <div className="min-w-0">
+              <div className="flex items-center gap-1 text-sm font-bold text-zinc-900">
+                @{larp.profiles?.username ?? larp.name}
+                <BadgeCheck size={14} strokeWidth={2.5} className="text-az-blue" />
+              </div>
+              {larp.profiles?.bio && (
+                <p className="text-sm text-zinc-500 leading-snug">
+                  {larp.profiles.bio}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Name + claim */}
         <h1 className="text-4xl font-black leading-tight tracking-tight text-zinc-900 sm:text-5xl">

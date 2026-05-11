@@ -8,7 +8,8 @@ const NAME_MAX = 50
 const CLAIM_MAX = 120
 
 export default function AddLarpForm() {
-  const { session, username } = useAuth()
+  const { session, profile } = useAuth()
+  const username = profile?.username ?? null
   const isAuthed = !!session && !!username
   const [name, setName] = useState('')
   const [claim, setClaim] = useState('')

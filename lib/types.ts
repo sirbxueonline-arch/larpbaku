@@ -1,3 +1,10 @@
+export type Profile = {
+  user_id: string
+  username: string
+  avatar_url: string | null
+  bio: string | null
+}
+
 export type Larp = {
   id: string
   name: string
@@ -7,4 +14,5 @@ export type Larp = {
   score?: number        // generated column — may not exist in all environments
   created_at: string
   user_id?: string | null
+  profiles?: Pick<Profile, 'username' | 'avatar_url' | 'bio'> | null
 }

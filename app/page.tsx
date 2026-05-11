@@ -3,10 +3,11 @@ import AddLarpForm from './components/AddLarpForm'
 import AdSlot from './components/AdSlot'
 import Leaderboard from './components/Leaderboard'
 import type { Larp } from '@/lib/types'
-
-const leftSlot = process.env.NEXT_PUBLIC_ADSENSE_SLOT_LEFT
-const rightSlot = process.env.NEXT_PUBLIC_ADSENSE_SLOT_RIGHT
-const mobileSlot = process.env.NEXT_PUBLIC_ADSENSE_SLOT_MOBILE
+import {
+  ADSENSE_SLOT_LEFT,
+  ADSENSE_SLOT_RIGHT,
+  ADSENSE_SLOT_MOBILE,
+} from '@/lib/adsense'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,7 +43,9 @@ export default async function Home() {
       <div className="mx-auto flex max-w-7xl items-start gap-6 px-4 py-10 sm:py-16">
         {/* Left ad rail (desktop only) */}
         <aside className="sticky top-8 hidden w-40 shrink-0 lg:block xl:w-48">
-          {leftSlot && <AdSlot slot={leftSlot} format="vertical" className="min-h-[600px]" />}
+          {ADSENSE_SLOT_LEFT && (
+            <AdSlot slot={ADSENSE_SLOT_LEFT} format="vertical" className="min-h-[600px]" />
+          )}
         </aside>
 
         {/* Main content */}
@@ -112,14 +115,16 @@ export default async function Home() {
 
         {/* Right ad rail (desktop only) */}
         <aside className="sticky top-8 hidden w-40 shrink-0 lg:block xl:w-48">
-          {rightSlot && <AdSlot slot={rightSlot} format="vertical" className="min-h-[600px]" />}
+          {ADSENSE_SLOT_RIGHT && (
+            <AdSlot slot={ADSENSE_SLOT_RIGHT} format="vertical" className="min-h-[600px]" />
+          )}
         </aside>
       </div>
 
       {/* Mobile sticky bottom ad */}
-      {mobileSlot && (
+      {ADSENSE_SLOT_MOBILE && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white p-2 shadow-[0_-4px_16px_-4px_rgba(0,0,0,0.08)] lg:hidden">
-          <AdSlot slot={mobileSlot} format="auto" className="min-h-[60px]" />
+          <AdSlot slot={ADSENSE_SLOT_MOBILE} format="auto" className="min-h-[60px]" />
         </div>
       )}
     </>

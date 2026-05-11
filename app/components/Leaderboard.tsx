@@ -121,7 +121,10 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
         .select('id, name, claim, upvotes, downvotes, created_at, user_id, profiles(username, avatar_url, bio)')
         .order('score', { ascending: false })
         .order('created_at', { ascending: true })
-      if (data) setLarps(sortLarps(data as Larp[]))
+      // `as unknown as Larp[]` because Supabase's TS inference treats
+      // the embedded `profiles` join as an array. At runtime it's a
+      // single object (many-to-one FK), matching our Larp type.
+      if (data) setLarps(sortLarps(data as unknown as Larp[]))
     }
     function onVisible() {
       if (document.visibilityState === 'visible') refetch()

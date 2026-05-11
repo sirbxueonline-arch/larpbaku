@@ -39,7 +39,9 @@ export default async function Home() {
     console.error('[Leaderboard] Supabase fetch error:', JSON.stringify(error))
   }
 
-  const larps: Larp[] = (data as Larp[] | null) ?? []
+  // See Leaderboard.tsx: Supabase TS inference treats embedded
+  // `profiles` as an array even though it's a many-to-one FK.
+  const larps: Larp[] = (data as unknown as Larp[] | null) ?? []
 
   return (
     <>

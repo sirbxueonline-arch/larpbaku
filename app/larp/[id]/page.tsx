@@ -29,7 +29,8 @@ async function fetchLarp(id: string): Promise<{ larp: Larp; rank: number } | nul
     .maybeSingle()
 
   if (rowErr || !row) return null
-  const larp = row as Larp & { score?: number }
+  // Supabase TS inference returns embedded `profiles` as array.
+  const larp = row as unknown as Larp & { score?: number }
   const score = (larp.score ?? larp.upvotes - larp.downvotes) || 0
 
   // Rank = number of larps with a strictly higher score, plus 1. Ties

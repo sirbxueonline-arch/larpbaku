@@ -49,9 +49,8 @@ export default function LarpRow({
   const score = larp.upvotes - larp.downvotes
   const isTop3 = rank <= 3
   const top = isTop3 ? TOP3[rank - 1] : null
-  // Verified entries display with an @ prefix so they read like account
-  // handles, e.g. "@iska". Anonymous entries keep the free-form name.
-  const displayName = larp.user_id ? `@${larp.name}` : larp.name
+  // Display every entry as a handle ("@name") regardless of verified status.
+  const displayName = `@${larp.name}`
 
   const cardCls = top
     ? `border bg-white ${top.card}`

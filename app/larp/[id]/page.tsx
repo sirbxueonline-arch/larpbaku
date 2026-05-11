@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!result) return { title: 'Larp not found — Baku Larp' }
   const { larp, rank } = result
   const score = larp.upvotes - larp.downvotes
-  const displayName = larp.user_id ? `@${larp.name}` : larp.name
+  const displayName = `@${larp.name}`
   const title = `${displayName} — #${rank} on Baku Larp`
   const description = `"${larp.claim}" · ${score > 0 ? '+' : ''}${score} votes`
   return {
@@ -182,7 +182,7 @@ export default async function LarpDetailPage({ params }: Props) {
 
         {/* Name + claim */}
         <h1 className="text-4xl font-black leading-tight tracking-tight text-zinc-900 sm:text-5xl">
-          {larp.user_id ? `@${larp.name}` : larp.name}
+          @{larp.name}
         </h1>
         <p className="mt-3 text-lg text-zinc-600 leading-snug">
           {larp.claim}

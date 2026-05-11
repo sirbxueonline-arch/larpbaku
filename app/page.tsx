@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
+import { Crown } from 'lucide-react'
 import AddLarpForm from './components/AddLarpForm'
 import AdSlot from './components/AdSlot'
 import Leaderboard from './components/Leaderboard'
@@ -42,43 +43,57 @@ export default async function Home() {
 
   return (
     <>
-      {/* Viral marquee banner — full-width, designed to be screenshot-worthy
-          for stories. Hover (desktop) pauses the scroll. Respects
-          prefers-reduced-motion. */}
-      <div className="relative overflow-hidden bg-zinc-900">
+      {/* Viral marquee banner — full-width, screenshot-worthy for stories.
+          Hover pauses on desktop; respects prefers-reduced-motion. */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 shadow-[0_4px_24px_-6px_rgba(0,0,0,0.4)]">
         {/* Top flag stripe */}
-        <div className="flex h-1">
+        <div className="flex h-1.5">
           <div className="flex-1 bg-az-blue" />
           <div className="flex-1 bg-az-red" />
           <div className="flex-1 bg-az-green" />
         </div>
 
-        {/* Scrolling track — content duplicated so the loop is seamless */}
-        <div className="flex w-max animate-marquee py-3">
+        {/* Subtle gradient fade on left/right edges so text looks like it
+            scrolls into a void instead of cutting off hard */}
+        <div className="pointer-events-none absolute inset-y-1.5 left-0 z-10 w-12 bg-gradient-to-r from-zinc-950 to-transparent" />
+        <div className="pointer-events-none absolute inset-y-1.5 right-0 z-10 w-12 bg-gradient-to-l from-zinc-950 to-transparent" />
+
+        {/* Scrolling track — duplicated for seamless loop */}
+        <div className="flex w-max animate-marquee py-4">
           {[0, 1].map((dup) => (
             <div
               key={dup}
               aria-hidden={dup === 1}
-              className="flex shrink-0 items-center gap-8 px-4 text-base font-black uppercase tracking-wider sm:text-lg"
+              className="flex shrink-0 items-center gap-9 px-5 text-xl font-black uppercase italic tracking-tight sm:text-2xl"
             >
               <span className="text-white">Advertise yourself</span>
-              <span className="text-az-red">★</span>
-              <span className="text-az-blue">Be the biggest larp in Baku</span>
-              <span className="text-az-green">★</span>
+              <Crown
+                size={22}
+                strokeWidth={2.5}
+                className="shrink-0 text-yellow-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.65)]"
+              />
+              <span className="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(251,191,36,0.35)]">
+                Be the biggest larp in Baku
+              </span>
+              <span className="text-az-red drop-shadow-[0_0_8px_rgba(239,51,64,0.55)]">★</span>
               <span className="text-white">larpbaku.com</span>
-              <span className="text-az-red">★</span>
-              <span className="text-az-blue">Vote or be larped</span>
-              <span className="text-az-green">★</span>
+              <span className="text-az-blue drop-shadow-[0_0_8px_rgba(0,181,226,0.55)]">★</span>
+              <span className="text-white">Vote or be larped</span>
+              <span className="text-az-green drop-shadow-[0_0_8px_rgba(80,158,47,0.55)]">★</span>
               <span className="text-white">@larpbaku</span>
-              <span className="text-az-red">★</span>
-              <span className="text-az-blue">Rank your friends</span>
-              <span className="text-az-green">★</span>
+              <Crown
+                size={22}
+                strokeWidth={2.5}
+                className="shrink-0 text-yellow-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.65)]"
+              />
+              <span className="text-white">Rank your friends</span>
+              <span className="text-az-red drop-shadow-[0_0_8px_rgba(239,51,64,0.55)]">★</span>
             </div>
           ))}
         </div>
 
         {/* Bottom flag stripe */}
-        <div className="flex h-1">
+        <div className="flex h-1.5">
           <div className="flex-1 bg-az-blue" />
           <div className="flex-1 bg-az-red" />
           <div className="flex-1 bg-az-green" />

@@ -4,6 +4,7 @@ import AddLarpForm from './components/AddLarpForm'
 import AdSlot from './components/AdSlot'
 import AuthButton from './components/AuthButton'
 import Leaderboard from './components/Leaderboard'
+import SponsoredCard from './components/SponsoredCard'
 import type { Larp } from '@/lib/types'
 import {
   ADSENSE_SLOT_LEFT,
@@ -83,8 +84,13 @@ export default async function Home() {
           </header>
 
           {/* Form */}
-          <section className="mb-10">
+          <section className="mb-6">
             <AddLarpForm />
+          </section>
+
+          {/* House ad */}
+          <section className="mb-10">
+            <SponsoredCard />
           </section>
 
           {/* Debug: show fetch error in red if something went wrong */}

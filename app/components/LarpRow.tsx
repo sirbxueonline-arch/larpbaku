@@ -12,29 +12,23 @@ type Vote = 'up' | 'down'
 const TOP3 = [
   {
     // 1st — gold
-    badge:
-      'bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500 text-white shadow-[0_6px_18px_-4px_rgba(245,158,11,0.55)]',
-    card:
-      'border-2 border-amber-300 bg-white shadow-[0_6px_24px_-8px_rgba(245,158,11,0.3)]',
-    accent: 'bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-500',
+    ring: 'bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500 shadow-[0_4px_16px_-4px_rgba(245,158,11,0.55)]',
+    pill: 'bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500',
+    card: 'border-2 border-amber-300 bg-white shadow-[0_6px_24px_-8px_rgba(245,158,11,0.3)]',
     icon: Crown,
   },
   {
     // 2nd — silver
-    badge:
-      'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-[0_6px_18px_-4px_rgba(100,116,139,0.45)]',
-    card:
-      'border-2 border-slate-300 bg-white shadow-[0_6px_22px_-8px_rgba(100,116,139,0.22)]',
-    accent: 'bg-gradient-to-b from-slate-300 via-slate-400 to-slate-500',
+    ring: 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 shadow-[0_4px_16px_-4px_rgba(100,116,139,0.45)]',
+    pill: 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500',
+    card: 'border-2 border-slate-300 bg-white shadow-[0_6px_22px_-8px_rgba(100,116,139,0.22)]',
     icon: Medal,
   },
   {
     // 3rd — bronze
-    badge:
-      'bg-gradient-to-br from-orange-400 via-orange-500 to-amber-700 text-white shadow-[0_6px_18px_-4px_rgba(234,88,12,0.45)]',
-    card:
-      'border-2 border-orange-300 bg-white shadow-[0_6px_22px_-8px_rgba(234,88,12,0.22)]',
-    accent: 'bg-gradient-to-b from-orange-400 via-orange-500 to-amber-700',
+    ring: 'bg-gradient-to-br from-orange-400 via-orange-500 to-amber-700 shadow-[0_4px_16px_-4px_rgba(234,88,12,0.45)]',
+    pill: 'bg-gradient-to-br from-orange-400 via-orange-500 to-amber-700',
+    card: 'border-2 border-orange-300 bg-white shadow-[0_6px_22px_-8px_rgba(234,88,12,0.22)]',
     icon: Medal,
   },
 ]
@@ -56,9 +50,6 @@ export default function LarpRow({
   const isTop3 = rank <= 3
   const top = isTop3 ? TOP3[rank - 1] : null
 
-  const badgeCls = top
-    ? top.badge
-    : 'bg-zinc-100 text-zinc-500 border border-zinc-200'
   const cardCls = top
     ? `border bg-white ${top.card}`
     : 'border border-zinc-200 bg-white shadow-sm'
@@ -67,45 +58,50 @@ export default function LarpRow({
 
   return (
     <li
-      className={`relative flex items-center gap-3 overflow-hidden rounded-2xl pr-4 transition-all duration-200 ${
-        isTop3 ? 'py-4 pl-5 hover:scale-[1.01]' : 'py-3.5 pl-4 hover:scale-[1.005]'
+      className={`relative flex items-center gap-3 rounded-2xl px-4 transition-all duration-200 ${
+        isTop3 ? 'py-4 hover:scale-[1.01]' : 'py-3.5 hover:scale-[1.005]'
       } ${cardCls}`}
     >
-      {/* Left accent stripe (top 3 only) */}
-      {top && <div className={`absolute inset-y-0 left-0 w-1.5 ${top.accent}`} />}
-
-      {/* Rank badge */}
-      <div
-        className={`flex shrink-0 flex-col items-center justify-center rounded-xl font-black ${
-          isTop3 ? 'h-12 w-12' : 'h-10 w-10 text-xs'
-        } ${badgeCls}`}
-      >
-        {RankIcon ? (
-          <RankIcon
-            size={isTop3 ? 20 : 15}
-            strokeWidth={2.5}
-            className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)]"
-          />
-        ) : null}
-        <span
-          className={
-            RankIcon
-              ? `leading-none mt-0.5 ${isTop3 ? 'text-[10px]' : 'text-[10px]'}`
-              : 'text-sm'
-          }
+      {/* Framed avatar + corner rank badge */}
+      <div className="relative shrink-0">
+        {/* Gradient ring frame */}
+        <div
+          className={`rounded-full ${
+            top
+              ? `p-1 ${top.ring}`
+              : 'p-[2px] bg-gradient-to-br from-zinc-200 to-zinc-300'
+          }`}
         >
-          #{rank}
-        </span>
-      </div>
+          {/* White spacer so the gradient reads as a frame */}
+          <div className="rounded-full bg-white p-0.5">
+            <Avatar
+              url={larp.profiles?.avatar_url}
+              username={larp.profiles?.username ?? larp.name}
+              size="md"
+              bare
+            />
+          </div>
+        </div>
 
-      {/* Avatar (only when entry is owned by a user) */}
-      {larp.user_id && (
-        <Avatar
-          url={larp.profiles?.avatar_url}
-          username={larp.profiles?.username ?? larp.name}
-          size="md"
-        />
-      )}
+        {/* Rank badge at bottom-right corner of the avatar */}
+        <div
+          className={`absolute bottom-0 right-0 flex h-5 min-w-[20px] items-center justify-center gap-0.5 rounded-full px-1 ring-2 ring-white shadow-md translate-x-1 translate-y-1 ${
+            top ? `${top.pill} text-white` : 'bg-zinc-900 text-white'
+          }`}
+        >
+          {RankIcon ? (
+            <RankIcon
+              size={11}
+              strokeWidth={3}
+              className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]"
+            />
+          ) : (
+            <span className="text-[9px] font-black tabular-nums leading-none px-0.5">
+              {rank}
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* Name + claim (link to detail page) */}
       <Link

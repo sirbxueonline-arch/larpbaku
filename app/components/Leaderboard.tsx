@@ -134,11 +134,19 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
       if (document.visibilityState === 'visible') refetch()
     }
     document.addEventListener('visibilitychange', onVisible)
+    // Also refetch when AuthModal fires its custom event after a
+    // successful signup+claim. The session-id dependency below also
+    // fires this effect, but the event covers same-session refetches
+    // (e.g. profile edits, manual claims) too.
+    window.addEventListener('larps:refetch', refetch)
     // Trigger a refetch whenever the session identity changes — login,
     // logout, signup (with the auto-claim it can flip ownership of
     // existing rows).
     refetch()
-    return () => document.removeEventListener('visibilitychange', onVisible)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('larps:refetch', refetch)
+    }
   }, [session?.user.id])
 
   return (

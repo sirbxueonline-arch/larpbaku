@@ -94,18 +94,18 @@ export default function AuthModal({
             return
           }
 
-          // Claim any anonymous larps where the name matches the new
-          // username (case-insensitive). This lets a person who was
-          // already roasted on the leaderboard sign up later and
-          // "own" the entry — gets the verified ✓, avatar, bio, and
-          // social links displayed on it.
-          await supabase
-            .from('larps')
-            .update({ user_id: userId })
-            .ilike('name', u)
-            .is('user_id', null)
+          // Claim any anonymous larps with the same name via a
+          // SECURITY DEFINER RPC — needed because there's no public
+          // RLS UPDATE policy on larps, so a direct .update() would
+          // succeed-but-affect-zero-rows.
+          await supabase.rpc('claim_larps_for_user')
         }
         await refreshProfile()
+        // Tell the leaderboard to refetch with the new join data so
+        // the freshly-claimed entry picks up the avatar/bio/socials.
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('larps:refetch'))
+        }
         onClose()
       } else {
         const { error } = await supabase.auth.signInWithPassword({

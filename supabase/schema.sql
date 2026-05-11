@@ -75,6 +75,40 @@ $$;
 -- Drop the old client-callable RPC; voting now goes through /api/vote.
 drop function if exists increment_vote(uuid, text);
 
+-- Claim any anonymous larps whose name matches the caller's username.
+-- SECURITY DEFINER so it bypasses RLS on larps (we don't otherwise
+-- expose an UPDATE policy to the anon role). Verifies that the caller
+-- actually owns the username in profiles before claiming anything.
+create or replace function claim_larps_for_user() returns int
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_username text;
+  v_count int;
+begin
+  if v_user_id is null then
+    raise exception 'not_authenticated';
+  end if;
+
+  select username into v_username from profiles where user_id = v_user_id;
+  if v_username is null then
+    return 0;
+  end if;
+
+  update larps
+    set user_id = v_user_id
+    where lower(name) = lower(v_username) and user_id is null;
+
+  get diagnostics v_count = row_count;
+  return v_count;
+end;
+$$;
+
+grant execute on function claim_larps_for_user() to authenticated;
+
 -- Submission rate-limit table. One row per IP-hash tracking the most
 -- recent submission time. Server-side check via add_larp_with_rate_limit.
 create table if not exists larp_submissions (

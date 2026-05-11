@@ -75,5 +75,13 @@ $$;
 -- Drop the old client-callable RPC; voting now goes through /api/vote.
 drop function if exists increment_vote(uuid, text);
 
--- Enable realtime for the leaderboard.
-alter publication supabase_realtime add table larps;
+-- Enable realtime for the leaderboard (idempotent — skips if already added).
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'larps'
+  ) then
+    alter publication supabase_realtime add table larps;
+  end if;
+end $$;

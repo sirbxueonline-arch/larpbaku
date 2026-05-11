@@ -23,14 +23,15 @@ export default function ShareButton({
         ? `${window.location.origin}/larp/${larpId}`
         : `/larp/${larpId}`
     const title = `${name} — #${rank} on Baku Larp`
-    // Include the URL inline in the text. Some share targets (TikTok DM,
-    // Instagram, certain Android share sheets) ignore the separate `url`
-    // field of navigator.share(), so without this the URL is dropped.
-    const text = `${name} is #${rank} on Baku's Larp Leaderboard. Vote at ${url}`
 
+    // Pass ONLY the url field — no `text`. Some share targets concatenate
+    // text + url together with a space, which produced links like
+    //   larpbaku.com/larp/<id>%20<message>%20https://larpbaku.com/larp/<id>
+    // that 404. The OG image already shows the name/rank/claim when the
+    // URL is previewed, so the descriptive text is redundant anyway.
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
-        await navigator.share({ title, text, url })
+        await navigator.share({ title, url })
         return
       } catch {
         // user cancelled or share failed — fall through to clipboard

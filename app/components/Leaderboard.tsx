@@ -118,7 +118,7 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
     async function refetch() {
       const { data } = await supabase
         .from('larps')
-        .select('id, name, claim, upvotes, downvotes, created_at, user_id, profiles(username, avatar_url, bio)')
+        .select('id, name, claim, upvotes, downvotes, created_at, user_id, profiles(username, avatar_url, bio, tiktok, instagram)')
         .order('score', { ascending: false })
         .order('created_at', { ascending: true })
       // `as unknown as Larp[]` because Supabase's TS inference treats

@@ -24,7 +24,7 @@ async function fetchLarp(id: string): Promise<{ larp: Larp; rank: number } | nul
   // Fetch the larp directly by id — fast, doesn't depend on full table fetch
   const { data: row, error: rowErr } = await supabase
     .from('larps')
-    .select('id, name, claim, upvotes, downvotes, created_at, user_id, score, profiles(username, avatar_url, bio)')
+    .select('id, name, claim, upvotes, downvotes, created_at, user_id, score, profiles(username, avatar_url, bio, tiktok, instagram)')
     .eq('id', id)
     .maybeSingle()
 
@@ -128,6 +128,52 @@ export default async function LarpDetailPage({ params }: Props) {
                 <p className="text-sm text-zinc-500 leading-snug">
                   {larp.profiles.bio}
                 </p>
+              )}
+              {(larp.profiles?.tiktok || larp.profiles?.instagram) && (
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  {larp.profiles?.tiktok && (
+                    <a
+                      href={`https://www.tiktok.com/@${larp.profiles.tiktok}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-full bg-zinc-900 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-zinc-800"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="h-3 w-3"
+                        aria-hidden="true"
+                      >
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.1z" />
+                      </svg>
+                      @{larp.profiles.tiktok}
+                    </a>
+                  )}
+                  {larp.profiles?.instagram && (
+                    <a
+                      href={`https://www.instagram.com/${larp.profiles.instagram}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-fuchsia-500 via-pink-500 to-orange-400 px-2.5 py-1 text-[11px] font-bold text-white transition hover:brightness-110"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-3 w-3"
+                        aria-hidden="true"
+                      >
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                      </svg>
+                      @{larp.profiles.instagram}
+                    </a>
+                  )}
+                </div>
               )}
             </div>
           </div>

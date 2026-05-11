@@ -8,6 +8,11 @@ import Avatar from './Avatar'
 
 const BIO_MAX = 200
 const MAX_BYTES = 2 * 1024 * 1024 // 2MB
+const HANDLE_RE = /^[a-zA-Z0-9._]*$/
+
+function cleanHandle(s: string) {
+  return s.trim().replace(/^@+/, '').toLowerCase()
+}
 
 export default function ProfileEditor({
   open,
@@ -18,6 +23,8 @@ export default function ProfileEditor({
 }) {
   const { session, profile, refreshProfile } = useAuth()
   const [bio, setBio] = useState('')
+  const [tiktok, setTiktok] = useState('')
+  const [instagram, setInstagram] = useState('')
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -26,6 +33,8 @@ export default function ProfileEditor({
   useEffect(() => {
     if (open) {
       setBio(profile?.bio ?? '')
+      setTiktok(profile?.tiktok ?? '')
+      setInstagram(profile?.instagram ?? '')
       setAvatarPreview(profile?.avatar_url ?? null)
       setError(null)
     }
@@ -97,11 +106,25 @@ export default function ProfileEditor({
     e.preventDefault()
     if (!session) return
     setError(null)
+    const tk = cleanHandle(tiktok)
+    const ig = cleanHandle(instagram)
+    if (tk && (tk.length > 24 || !HANDLE_RE.test(tk))) {
+      setError('TikTok: letters, numbers, dots, underscores. Max 24 chars.')
+      return
+    }
+    if (ig && (ig.length > 30 || !HANDLE_RE.test(ig))) {
+      setError('Instagram: letters, numbers, dots, underscores. Max 30 chars.')
+      return
+    }
     setBusy(true)
     const trimmed = bio.trim().slice(0, BIO_MAX)
     const { error: err } = await supabase
       .from('profiles')
-      .update({ bio: trimmed || null })
+      .update({
+        bio: trimmed || null,
+        tiktok: tk || null,
+        instagram: ig || null,
+      })
       .eq('user_id', session.user.id)
     if (err) {
       setError(err.message)
@@ -175,6 +198,44 @@ export default function ProfileEditor({
               maxLength={BIO_MAX}
               className="w-full resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm font-medium text-zinc-900 placeholder-zinc-400 transition focus:border-az-blue focus:bg-white focus:outline-none focus:ring-2 focus:ring-az-blue/20"
             />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+              TikTok
+            </label>
+            <div className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 transition focus-within:border-az-blue focus-within:bg-white focus-within:ring-2 focus-within:ring-az-blue/20">
+              <span className="text-sm font-bold text-zinc-400">@</span>
+              <input
+                type="text"
+                value={tiktok}
+                onChange={(e) => setTiktok(e.target.value.replace(/^@+/, ''))}
+                placeholder="larpbaku"
+                autoCapitalize="off"
+                spellCheck={false}
+                maxLength={24}
+                className="flex-1 bg-transparent text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+              Instagram
+            </label>
+            <div className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 transition focus-within:border-az-blue focus-within:bg-white focus-within:ring-2 focus-within:ring-az-blue/20">
+              <span className="text-sm font-bold text-zinc-400">@</span>
+              <input
+                type="text"
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value.replace(/^@+/, ''))}
+                placeholder="larpbaku"
+                autoCapitalize="off"
+                spellCheck={false}
+                maxLength={30}
+                className="flex-1 bg-transparent text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none"
+              />
+            </div>
           </div>
 
           {error && (

@@ -3,6 +3,8 @@ export type Profile = {
   username: string
   avatar_url: string | null
   bio: string | null
+  tiktok: string | null
+  instagram: string | null
 }
 
 export type Larp = {
@@ -14,5 +16,5 @@ export type Larp = {
   score?: number        // generated column — may not exist in all environments
   created_at: string
   user_id?: string | null
-  profiles?: Pick<Profile, 'username' | 'avatar_url' | 'bio'> | null
+  profiles?: Pick<Profile, 'username' | 'avatar_url' | 'bio' | 'tiktok' | 'instagram'> | null
 }

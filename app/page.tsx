@@ -31,7 +31,7 @@ export default async function Home() {
   // tiebreaker.
   const { data, error } = await supabase
     .from('larps')
-    .select('id, name, claim, upvotes, downvotes, created_at, user_id, profiles(username, avatar_url, bio)')
+    .select('id, name, claim, upvotes, downvotes, created_at, user_id, profiles(username, avatar_url, bio, tiktok, instagram)')
     .order('score', { ascending: false })
     .order('created_at', { ascending: true })
 

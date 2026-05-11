@@ -42,6 +42,49 @@ export default async function Home() {
 
   return (
     <>
+      {/* Viral marquee banner — full-width, designed to be screenshot-worthy
+          for stories. Hover (desktop) pauses the scroll. Respects
+          prefers-reduced-motion. */}
+      <div className="relative overflow-hidden bg-zinc-900">
+        {/* Top flag stripe */}
+        <div className="flex h-1">
+          <div className="flex-1 bg-az-blue" />
+          <div className="flex-1 bg-az-red" />
+          <div className="flex-1 bg-az-green" />
+        </div>
+
+        {/* Scrolling track — content duplicated so the loop is seamless */}
+        <div className="flex w-max animate-marquee py-3">
+          {[0, 1].map((dup) => (
+            <div
+              key={dup}
+              aria-hidden={dup === 1}
+              className="flex shrink-0 items-center gap-8 px-4 text-base font-black uppercase tracking-wider sm:text-lg"
+            >
+              <span className="text-white">Advertise yourself</span>
+              <span className="text-az-red">★</span>
+              <span className="text-az-blue">Be the biggest larp in Baku</span>
+              <span className="text-az-green">★</span>
+              <span className="text-white">larpbaku.com</span>
+              <span className="text-az-red">★</span>
+              <span className="text-az-blue">Vote or be larped</span>
+              <span className="text-az-green">★</span>
+              <span className="text-white">@larpbaku</span>
+              <span className="text-az-red">★</span>
+              <span className="text-az-blue">Rank your friends</span>
+              <span className="text-az-green">★</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom flag stripe */}
+        <div className="flex h-1">
+          <div className="flex-1 bg-az-blue" />
+          <div className="flex-1 bg-az-red" />
+          <div className="flex-1 bg-az-green" />
+        </div>
+      </div>
+
       <div className="mx-auto flex max-w-7xl items-start gap-6 px-4 py-10 sm:py-16">
         {/* Left ad rail (desktop only) */}
         <aside className="sticky top-8 hidden w-40 shrink-0 lg:block xl:w-48">

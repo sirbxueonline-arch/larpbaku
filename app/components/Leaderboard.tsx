@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase/client'
 import type { Larp } from '@/lib/types'
 import LarpRow from './LarpRow'
+import { useAuth } from './AuthProvider'
 
 const VOTE_KEY = 'baku-larp:vote'
 type Vote = 'up' | 'down'
@@ -36,6 +37,7 @@ function sortLarps(larps: Larp[]): Larp[] {
 }
 
 export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) {
+  const { session } = useAuth()
   const [larps, setLarps] = useState<Larp[]>(() => sortLarps(initialLarps))
   const [vote, setVote] = useState<StoredVote | null>(null)
   const [busy, setBusy] = useState(false)
@@ -114,6 +116,8 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
   // Refetch from scratch when the tab becomes visible again — covers the
   // case where the realtime websocket drops while the tab is asleep and
   // we miss updates. Belt-and-suspenders alongside the realtime channel.
+  // Also refetch on auth state change so freshly-claimed entries pick up
+  // the new owner's avatar/bio/socials without a manual page reload.
   useEffect(() => {
     async function refetch() {
       const { data } = await supabase
@@ -130,8 +134,12 @@ export default function Leaderboard({ initialLarps }: { initialLarps: Larp[] }) 
       if (document.visibilityState === 'visible') refetch()
     }
     document.addEventListener('visibilitychange', onVisible)
+    // Trigger a refetch whenever the session identity changes — login,
+    // logout, signup (with the auto-claim it can flip ownership of
+    // existing rows).
+    refetch()
     return () => document.removeEventListener('visibilitychange', onVisible)
-  }, [])
+  }, [session?.user.id])
 
   return (
     <div>

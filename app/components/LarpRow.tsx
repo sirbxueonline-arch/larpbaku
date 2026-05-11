@@ -49,6 +49,9 @@ export default function LarpRow({
   const score = larp.upvotes - larp.downvotes
   const isTop3 = rank <= 3
   const top = isTop3 ? TOP3[rank - 1] : null
+  // Verified entries display with an @ prefix so they read like account
+  // handles, e.g. "@iska". Anonymous entries keep the free-form name.
+  const displayName = larp.user_id ? `@${larp.name}` : larp.name
 
   const cardCls = top
     ? `border bg-white ${top.card}`
@@ -107,14 +110,14 @@ export default function LarpRow({
       <Link
         href={`/larp/${larp.id}`}
         className="group min-w-0 flex-1"
-        aria-label={`Open ${larp.name}'s page`}
+        aria-label={`Open ${displayName}'s page`}
       >
         <div
           className={`flex items-center gap-1 truncate font-black text-zinc-900 leading-tight group-hover:text-az-blue transition-colors ${
             isTop3 ? 'text-base' : 'font-bold'
           }`}
         >
-          <span className="truncate">{larp.name}</span>
+          <span className="truncate">{displayName}</span>
           {larp.user_id && (
             <BadgeCheck
               size={14}
@@ -128,7 +131,7 @@ export default function LarpRow({
       </Link>
 
       {/* Share */}
-      <ShareButton larpId={larp.id} name={larp.name} rank={rank} />
+      <ShareButton larpId={larp.id} name={displayName} rank={rank} />
 
       {/* Score + vote buttons */}
       <div className="flex items-center gap-2 shrink-0">

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { supabase } from '@/lib/supabase/client'
 
 const NAME_MAX = 50
 const CLAIM_MAX = 120
@@ -19,10 +18,30 @@ export default function AddLarpForm() {
     if (!n || !c) return
     setBusy(true)
     setError(null)
-    const { error } = await supabase.from('larps').insert({ name: n, claim: c })
-    if (error) setError(error.message)
-    else { setName(''); setClaim('') }
-    setBusy(false)
+    try {
+      const res = await fetch('/api/larps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: n, claim: c }),
+      })
+      if (res.ok) {
+        setName('')
+        setClaim('')
+      } else {
+        const data = (await res.json().catch(() => null)) as { error?: string } | null
+        if (data?.error === 'rate_limited') {
+          setError('You just added one — wait a few minutes before adding another.')
+        } else if (data?.error === 'invalid_body') {
+          setError('Name or claim is too long. Trim it down.')
+        } else {
+          setError('Could not add. Try again in a moment.')
+        }
+      }
+    } catch {
+      setError('Network error. Try again.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   const canSubmit = name.trim().length > 0 && claim.trim().length > 0 && !busy

@@ -1,0 +1,147 @@
+import { createClient } from '@supabase/supabase-js'
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { Crown, Medal, ArrowLeft } from 'lucide-react'
+import type { Metadata } from 'next'
+import type { Larp } from '@/lib/types'
+
+export const dynamic = 'force-dynamic'
+
+type Props = { params: { id: string } }
+
+async function fetchLarp(id: string): Promise<{ larp: Larp; rank: number } | null> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: {
+        fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
+      },
+    },
+  )
+
+  const { data: larps } = await supabase
+    .from('larps')
+    .select('id, name, claim, upvotes, downvotes, created_at')
+    .order('score', { ascending: false })
+    .order('created_at', { ascending: true })
+
+  if (!larps) return null
+  const rank = (larps as Larp[]).findIndex((l) => l.id === id)
+  if (rank === -1) return null
+  return { larp: (larps as Larp[])[rank], rank: rank + 1 }
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const result = await fetchLarp(params.id)
+  if (!result) return { title: 'Larp not found — Baku Larp' }
+  const { larp, rank } = result
+  const score = larp.upvotes - larp.downvotes
+  const title = `${larp.name} — #${rank} on Baku Larp`
+  const description = `"${larp.claim}" · ${score > 0 ? '+' : ''}${score} votes`
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: 'website' },
+    twitter: { card: 'summary_large_image', title, description },
+  }
+}
+
+export default async function LarpDetailPage({ params }: Props) {
+  const result = await fetchLarp(params.id)
+  if (!result) notFound()
+  const { larp, rank } = result
+  const score = larp.upvotes - larp.downvotes
+
+  const top = rank === 1
+    ? { label: 'CHAMPION', icon: Crown, color: 'text-yellow-500', bg: 'from-amber-300 via-yellow-400 to-amber-500' }
+    : rank === 2
+    ? { label: 'SILVER', icon: Medal, color: 'text-slate-500', bg: 'from-slate-300 via-slate-400 to-slate-500' }
+    : rank === 3
+    ? { label: 'BRONZE', icon: Medal, color: 'text-orange-500', bg: 'from-orange-400 via-orange-500 to-amber-700' }
+    : null
+
+  return (
+    <main className="mx-auto max-w-2xl px-4 py-10 sm:py-16">
+      <Link
+        href="/"
+        className="mb-8 inline-flex items-center gap-1.5 text-sm font-semibold text-az-blue hover:underline"
+      >
+        <ArrowLeft size={14} strokeWidth={2.5} />
+        Back to leaderboard
+      </Link>
+
+      <div className="relative overflow-hidden rounded-3xl border-2 border-zinc-200 bg-white p-8 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.15)]">
+        {top && (
+          <div className={`absolute inset-y-0 left-0 w-2 bg-gradient-to-b ${top.bg}`} />
+        )}
+
+        {/* Rank pill */}
+        <div className="mb-6 flex items-center gap-3">
+          {top ? (
+            <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${top.bg} text-white shadow-[0_8px_20px_-6px_rgba(0,0,0,0.2)]`}>
+              <top.icon size={24} strokeWidth={2.5} className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)]" />
+            </div>
+          ) : (
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100 text-2xl font-black text-zinc-500">
+              #{rank}
+            </div>
+          )}
+          {top && (
+            <span className={`rounded-full bg-gradient-to-r ${top.bg} px-3 py-1 text-xs font-black tracking-wider text-white`}>
+              {top.label} · #{rank}
+            </span>
+          )}
+        </div>
+
+        {/* Name + claim */}
+        <h1 className="text-4xl font-black leading-tight tracking-tight text-zinc-900 sm:text-5xl">
+          {larp.name}
+        </h1>
+        <p className="mt-3 text-lg text-zinc-600 leading-snug">
+          {larp.claim}
+        </p>
+
+        {/* Stats */}
+        <div className="mt-8 grid grid-cols-3 gap-3">
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+            <div className="text-2xl font-black text-az-green tabular-nums">
+              {larp.upvotes}
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+              Upvotes
+            </div>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+            <div className="text-2xl font-black text-az-red tabular-nums">
+              {larp.downvotes}
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+              Downvotes
+            </div>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+            <div
+              className={`text-2xl font-black tabular-nums ${
+                score > 0 ? 'text-az-green' : score < 0 ? 'text-az-red' : 'text-zinc-400'
+              }`}
+            >
+              {score > 0 ? '+' : ''}{score}
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+              Net score
+            </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <Link
+          href={`/#larp-${larp.id}`}
+          className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-az-blue px-5 py-3 text-sm font-bold text-white transition hover:brightness-110 active:scale-[0.99]"
+        >
+          Vote on the leaderboard
+        </Link>
+      </div>
+    </main>
+  )
+}

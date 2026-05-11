@@ -2,7 +2,9 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronUp, ChevronDown, Crown, Medal } from 'lucide-react'
+import Link from 'next/link'
 import type { Larp } from '@/lib/types'
+import ShareButton from './ShareButton'
 
 type Vote = 'up' | 'down'
 
@@ -95,17 +97,24 @@ export default function LarpRow({
         </span>
       </div>
 
-      {/* Name + claim */}
-      <div className="min-w-0 flex-1">
+      {/* Name + claim (link to detail page) */}
+      <Link
+        href={`/larp/${larp.id}`}
+        className="group min-w-0 flex-1"
+        aria-label={`Open ${larp.name}'s page`}
+      >
         <div
-          className={`truncate font-black text-zinc-900 leading-tight ${
+          className={`truncate font-black text-zinc-900 leading-tight group-hover:text-az-blue transition-colors ${
             isTop3 ? 'text-base' : 'font-bold'
           }`}
         >
           {larp.name}
         </div>
         <div className="truncate text-sm text-zinc-500 mt-0.5">{larp.claim}</div>
-      </div>
+      </Link>
+
+      {/* Share */}
+      <ShareButton larpId={larp.id} name={larp.name} rank={rank} />
 
       {/* Score + vote buttons */}
       <div className="flex items-center gap-2 shrink-0">

@@ -75,6 +75,51 @@ $$;
 -- Drop the old client-callable RPC; voting now goes through /api/vote.
 drop function if exists increment_vote(uuid, text);
 
+-- Submission rate-limit table. One row per IP-hash tracking the most
+-- recent submission time. Server-side check via add_larp_with_rate_limit.
+create table if not exists larp_submissions (
+  ip_hash text primary key,
+  last_submitted_at timestamptz not null default now()
+);
+
+alter table larp_submissions enable row level security;
+
+-- Atomic submit: rejects if the same IP submitted within the cooldown
+-- window (default 10 minutes), otherwise inserts the larp and bumps the
+-- IP-hash's last_submitted_at. Called from /api/larps.
+create or replace function add_larp_with_rate_limit(
+  p_name text,
+  p_claim text,
+  p_ip_hash text,
+  p_cooldown_seconds int default 600
+) returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_last timestamptz;
+  v_new_id uuid;
+begin
+  select last_submitted_at into v_last
+  from larp_submissions
+  where ip_hash = p_ip_hash;
+
+  if v_last is not null and v_last > now() - make_interval(secs => p_cooldown_seconds) then
+    raise exception 'rate_limited';
+  end if;
+
+  insert into larps (name, claim) values (p_name, p_claim)
+  returning id into v_new_id;
+
+  insert into larp_submissions (ip_hash, last_submitted_at)
+  values (p_ip_hash, now())
+  on conflict (ip_hash) do update set last_submitted_at = now();
+
+  return v_new_id;
+end;
+$$;
+
 -- Enable realtime for the leaderboard (idempotent — skips if already added).
 do $$
 begin
